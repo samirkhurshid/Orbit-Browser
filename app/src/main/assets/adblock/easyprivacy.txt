@@ -1,0 +1,7 @@
+! Orbit Browser — sample privacy/tracker list
+! Replace with full EasyPrivacy from https://easylist.to/easylist/easyprivacy.txt
+||google-analytics.com^
+||scorecardresearch.com^
+||hotjar.com^
+||mixpanel.com^
+||segment.com^

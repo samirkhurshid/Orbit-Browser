@@ -1,0 +1,8 @@
+! Orbit Browser — sample ad-block list
+! Replace with full EasyList from https://easylist.to/easylist/easylist.txt
+||doubleclick.net^
+||googlesyndication.com^
+||googleadservices.com^
+||adnxs.com^
+||outbrain.com^
+||taboola.com^
