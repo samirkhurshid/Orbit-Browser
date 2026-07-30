@@ -153,6 +153,10 @@ class OBWebView @JvmOverloads constructor(
 
             userAgentString = getOrInitMobileUserAgent()
             setSafeBrowsingEnabled(true)
+
+            @Suppress("DEPRECATION")
+            setRenderPriority(WebSettings.RenderPriority.HIGH)
+            setOffscreenPreRaster(true)
         }
 
         try {

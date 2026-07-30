@@ -68,6 +68,11 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+
         setContent {
             val ui by viewModel.ui.collectAsState()
             val activeTab by viewModel.tabManager.activeTab.collectAsState()
