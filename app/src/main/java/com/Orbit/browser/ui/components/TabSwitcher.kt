@@ -559,11 +559,11 @@ private fun TabCard(
                 },
             ),
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(modifier = Modifier.padding(top = 6.dp, bottom = 4.dp, start = 4.dp, end = 4.dp)) {
             // Card Header Bar (Favicon + Site Title + Circular Grey Close Button)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier          = Modifier.padding(bottom = 8.dp, start = 4.dp, end = 4.dp),
+                modifier          = Modifier.padding(bottom = 6.dp, start = 4.dp, end = 4.dp),
             ) {
                 // Favicon / Home Icon
                 if (isHomeTab) {
@@ -628,12 +628,12 @@ private fun TabCard(
                 }
             }
 
-            // Taller Inner Preview Area (Clean white rounded thumbnail preview matching screenshot)
+            // Taller Inner Preview Area (Reduced left, right & bottom bezels for maximum preview size)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
                     .background(
                         if (tab.isPrivate) Color(0xFF1E152A)
                         else Color.White
@@ -642,7 +642,7 @@ private fun TabCard(
                         0.5.dp,
                         if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.2f)
                         else Color.Black.copy(alpha = 0.08f),
-                        RoundedCornerShape(16.dp),
+                        RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
