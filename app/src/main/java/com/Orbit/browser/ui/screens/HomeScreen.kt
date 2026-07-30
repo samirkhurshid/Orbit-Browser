@@ -92,6 +92,9 @@ fun HomeScreen(
         label         = "home_entrance",
     )
 
+    val shrinkTopPadding = (14.dp - (scrollState.value / 4f).dp).coerceAtLeast(0.dp)
+    val shrinkTopSpacer  = (14.dp - (scrollState.value / 4f).dp).coerceAtLeast(0.dp)
+
     Box(modifier = modifier.fillMaxSize()) {
 
         // ── Scrollable content ─────────────────────────────────────────────
@@ -101,10 +104,10 @@ fun HomeScreen(
                 .alpha(entranceAlpha)
                 .verticalScroll(scrollState)
                 .statusBarsPadding()
-                .padding(top = 14.dp, bottom = 110.dp),
+                .padding(top = shrinkTopPadding, bottom = 110.dp),
         ) {
             // ── Greeting row + title (App.tsx lines 655–698) ──────────────
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(shrinkTopSpacer))
             GreetingSection(
                 weather          = ui.weatherState,
                 theme            = theme,

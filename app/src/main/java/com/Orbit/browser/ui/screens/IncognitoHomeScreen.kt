@@ -51,16 +51,20 @@ fun IncognitoHomeScreen(
         label         = "incog_entrance",
     )
 
+    val scrollState = rememberScrollState()
+    val shrinkTopPadding = (14.dp - (scrollState.value / 4f).dp).coerceAtLeast(0.dp)
+    val shrinkTopSpacer  = (14.dp - (scrollState.value / 4f).dp).coerceAtLeast(0.dp)
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .alpha(entranceAlpha)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .statusBarsPadding()
-                .padding(top = 14.dp, bottom = 110.dp),
+                .padding(top = shrinkTopPadding, bottom = 110.dp),
         ) {
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(shrinkTopSpacer))
             IncognitoGreetingSection(
                 weather = ui.weatherState,
                 theme = theme
