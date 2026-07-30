@@ -211,6 +211,23 @@ fun BrowserScreen(
                 onDismiss = { viewModel.closeShare() },
             )
         }
+
+        // ── Context Menu Sheet (Long Press Image / Link) ───────────────────
+        val contextMenuElement = ui.activeContextMenuElement
+        AnimatedVisibility(
+            visible  = contextMenuElement != null,
+            enter    = com.orbit.browser.ui.animations.OBMotion.sheetEnterFromBottom,
+            exit     = com.orbit.browser.ui.animations.OBMotion.sheetExitToBottom,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            contextMenuElement?.let { element ->
+                ContextMenuSheet(
+                    element   = element,
+                    viewModel = viewModel,
+                    onDismiss = { viewModel.dismissContextMenu() },
+                )
+            }
+        }
     }
 }
 
@@ -299,6 +316,12 @@ fun PersistentWebViewStack(
                                 }
                                 wv.httpsOnlyEnabled = ui.httpsOnly
                                 wv.onFindMatchCount = { current, total -> viewModel.updateFindMatchCount(current, total) }
+                                wv.onDownloadRequested = { url, userAgent, contentDisposition, mimeType, contentLength ->
+                                    viewModel.startDownload(context, url, userAgent, contentDisposition, mimeType, contentLength)
+                                }
+                                wv.onContextMenuRequested = { element ->
+                                    viewModel.showContextMenu(element)
+                                }
                                 wv.updateDarkMode(isDark)
                                 wv.updateBlockCookies(ui.blockCookies)
                                 if (tab.url.isNotBlank()) {
@@ -768,3 +791,132 @@ private fun extractPath(url: String): String = try {
     val q    = uri.query?.let { "?$it" } ?: ""
     "${path}${q}".take(60)
 } catch (_: Exception) { "" }
+
+@Composable
+private fun ContextMenuSheet(
+    element: com.orbit.browser.browser.engine.OBContextMenuElement,
+    viewModel: BrowserViewModel,
+    onDismiss: () -> Unit,
+) {
+    val theme  = LocalOBTheme.current
+    val g      = theme.glass
+    val isDark = theme.isDark
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val link = element.linkUrl ?: ""
+    val img  = element.imageUrl ?: ""
+    val title = element.title ?: ""
+
+    val targetUrl = if (link.isNotBlank()) link else img
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (isDark) Color(0xFF040510).copy(alpha = 0.65f)
+                else Color(0xFFC8D2F0).copy(alpha = 0.65f)
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication        = null,
+                onClick           = onDismiss,
+            ),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .frostedGlass(isDark = isDark, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), blurRadius = 32.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication        = null,
+                ) { /* consume */ }
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+        ) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .width(40.dp).height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(g.glassBorder2)
+                        .align(Alignment.CenterHorizontally),
+                )
+                Spacer(Modifier.height(16.dp))
+
+                val titleText = if (title.isNotBlank()) title else targetUrl
+                Text(
+                    text       = titleText,
+                    fontSize   = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = g.txColor,
+                    maxLines   = 2,
+                    overflow   = TextOverflow.Ellipsis,
+                )
+                if (targetUrl.isNotBlank() && targetUrl != titleText) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text       = targetUrl,
+                        fontSize   = 11.5.sp,
+                        color      = g.tx2Color,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = g.glassBorder2, thickness = 1.dp)
+                Spacer(Modifier.height(8.dp))
+
+                if (link.isNotBlank()) {
+                    ContextMenuItem(icon = Icons.AutoMirrored.Filled.OpenInNew, label = "Open in New Tab") {
+                        viewModel.newTab(link)
+                        onDismiss()
+                    }
+                    ContextMenuItem(icon = Icons.Default.Security, label = "Open in Incognito Tab") {
+                        viewModel.newTab(link, isPrivate = true)
+                        onDismiss()
+                    }
+                    ContextMenuItem(icon = Icons.Default.ContentCopy, label = "Copy Link Address") {
+                        viewModel.copyToClipboard(context, "Link", link)
+                        onDismiss()
+                    }
+                }
+
+                if (img.isNotBlank()) {
+                    ContextMenuItem(icon = Icons.Default.FileDownload, label = "Save Image / Download Media") {
+                        viewModel.startDownload(context, img, "", "", "", 0L)
+                        onDismiss()
+                    }
+                } else if (link.isNotBlank()) {
+                    ContextMenuItem(icon = Icons.Default.FileDownload, label = "Download Link Target") {
+                        viewModel.startDownload(context, link, "", "", "", 0L)
+                        onDismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContextMenuItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val theme = LocalOBTheme.current
+    val g = theme.glass
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(imageVector = icon, contentDescription = label, tint = g.txColor, modifier = Modifier.size(20.dp))
+        Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = g.txColor)
+    }
+}
