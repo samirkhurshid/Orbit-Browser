@@ -369,8 +369,8 @@ private fun MeshBackground() {
             val w = size.width
             val h = size.height
 
-            // 1. Top-Left Corner Gradient (Main Color - Equal Strength)
-            // Radiates smoothly from top-left (0,0) across upper left section
+            // 1. Top-Left Corner Gradient (Main Color - Equal Strength, shifted 10% down)
+            // Radiates smoothly starting 10% down from top-left corner
             val r1 = w * 1.15f
             val maxAlpha = if (isDark) 0.38f else 0.45f
             drawCircle(
@@ -381,11 +381,11 @@ private fun MeshBackground() {
                         0.70f to orb1Clr.copy(alpha = maxAlpha * 0.18f),
                         1.0f to Color.Transparent,
                     ),
-                    center = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    center = androidx.compose.ui.geometry.Offset(0f, h * 0.10f),
                     radius = r1,
                 ),
                 radius = r1,
-                center = androidx.compose.ui.geometry.Offset(0f, 0f),
+                center = androidx.compose.ui.geometry.Offset(0f, h * 0.10f),
             )
 
             // 2. Bottom-Right Corner Gradient (Secondary Color - Exact Same Strength as Top-Left!)
