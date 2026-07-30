@@ -167,20 +167,8 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
     val historyListState     = rememberLazyListState()
     val downloadsListState   = rememberLazyListState()
 
-    val currentScrollOffset by remember(ui.screen) {
-        derivedStateOf {
-            when (ui.screen) {
-                BrowserScreen.Home      -> homeScrollState.value
-                BrowserScreen.Settings  -> settingsListState.firstVisibleItemIndex * 260 + settingsListState.firstVisibleItemScrollOffset
-                BrowserScreen.Bookmarks -> bookmarksListState.firstVisibleItemIndex * 260 + bookmarksListState.firstVisibleItemScrollOffset
-                BrowserScreen.History   -> historyListState.firstVisibleItemIndex * 260 + historyListState.firstVisibleItemScrollOffset
-                BrowserScreen.Downloads -> downloadsListState.firstVisibleItemIndex * 260 + downloadsListState.firstVisibleItemScrollOffset
-                else -> 0
-            }
-        }
-    }
-    val figmaSpring = com.orbit.browser.ui.animations.OBEasing.FigmaSpring
-    val figmaEase   = com.orbit.browser.ui.animations.OBEasing.FigmaEase
+    val figmaSpring = com.orbit.browser.ui.animations.OBEasing.IosCurve
+    val figmaEase   = com.orbit.browser.ui.animations.OBEasing.IosCurve
 
     CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(modifier = Modifier.fillMaxSize().background(theme.glass.phoneBg)) {
@@ -206,32 +194,32 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                 transitionSpec = {
                     val isOpeningFullScreen = targetState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords, BrowserScreen.NewsHub)
                     val isClosingFullScreen = initialState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords, BrowserScreen.NewsHub)
+                    val iosCurve  = com.orbit.browser.ui.animations.OBEasing.IosCurve
+                    val iosSpringInt = spring<androidx.compose.ui.unit.IntOffset>(dampingRatio = 0.85f, stiffness = 300f)
 
                     if (isOpeningFullScreen) {
-                        (slideInVertically(initialOffsetY = { it }, animationSpec = tween(260, easing = figmaSpring)) + fadeIn(tween(180, easing = figmaEase))) togetherWith
-                        fadeOut(tween(160, easing = figmaEase))
+                        (slideInVertically(initialOffsetY = { it }, animationSpec = tween(280, easing = iosCurve)) + fadeIn(tween(180, easing = iosCurve))) togetherWith
+                        fadeOut(tween(160, easing = iosCurve))
                     } else if (isClosingFullScreen) {
-                        fadeIn(tween(180, easing = figmaEase)) togetherWith
-                        (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(240, easing = figmaSpring)) + fadeOut(tween(160, easing = figmaEase)))
+                        fadeIn(tween(180, easing = iosCurve)) togetherWith
+                        (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(260, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.TabSwitcher) {
-                        // Smooth Spring Expand into Tab Switcher with scale & fade
-                        (slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280, easing = figmaSpring)) + scaleIn(initialScale = 0.94f, animationSpec = tween(280, easing = figmaSpring)) + fadeIn(tween(200))) togetherWith
-                        (scaleOut(targetScale = 0.96f, animationSpec = tween(220, easing = figmaEase)) + fadeOut(tween(180)))
+                        (slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280, easing = iosCurve)) + scaleIn(initialScale = 0.94f, animationSpec = tween(280, easing = iosCurve)) + fadeIn(tween(200))) togetherWith
+                        (scaleOut(targetScale = 0.96f, animationSpec = tween(220, easing = iosCurve)) + fadeOut(tween(180)))
                     } else if (initialState == BrowserScreen.TabSwitcher) {
-                        // Smooth Spring Collapse out of Tab Switcher into Selected Page
-                        (scaleIn(initialScale = 0.96f, animationSpec = tween(260, easing = figmaSpring)) + fadeIn(tween(200))) togetherWith
-                        (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = tween(240, easing = figmaEase)) + scaleOut(targetScale = 0.94f, animationSpec = tween(240, easing = figmaEase)) + fadeOut(tween(180)))
+                        (scaleIn(initialScale = 0.96f, animationSpec = tween(260, easing = iosCurve)) + fadeIn(tween(200))) togetherWith
+                        (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = tween(240, easing = iosCurve)) + scaleOut(targetScale = 0.94f, animationSpec = tween(240, easing = iosCurve)) + fadeOut(tween(180)))
                     } else if (targetState == BrowserScreen.Browser) {
-                        // Open new site or click Next button: Slide in Right to Left
-                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeIn(tween(180))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { -it / 3 }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeOut(tween(180)))
+                        // Open new site or click Next button: Slide in Right to Left (iOS style steady & gradual)
+                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { -it / 3 }, animationSpec = iosSpringInt) + fadeOut(tween(180, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.Browser && targetState == BrowserScreen.Home) {
-                        // Perform Back gesture/button to Home: Slide out Right until disappear
-                        (slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeIn(tween(180))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeOut(tween(180)))
+                        // Perform Back gesture/button to Home: Slide out Right until disappear (iOS style steady & gradual)
+                        (slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = iosSpringInt) + fadeOut(tween(180, easing = iosCurve)))
                     } else {
-                        fadeIn(tween(200, easing = figmaEase)) togetherWith
-                        (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(240, easing = figmaSpring)) + fadeOut(tween(160, easing = figmaEase)))
+                        fadeIn(tween(200, easing = iosCurve)) togetherWith
+                        (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(240, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     }
                 },
                 label = "screen_transition",

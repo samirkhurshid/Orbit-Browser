@@ -77,11 +77,11 @@ fun OBIslandNavBar(
 
     val backArrowRotation by animateFloatAsState(
         targetValue   = if (isCollapsed) 90f else 0f,
-        animationSpec = spring(dampingRatio = 0.65f, stiffness = 400f),
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
         label         = "back_arrow_rotation"
     )
 
-    // ── Animated island dimensions  (App.tsx transition 0.46s var(--spring)) ─
+    // ── Animated island dimensions ─────────────────────────────────────────
     val targetWidth = if (isCollapsed) 52.dp else when (islandState) {
         IslandState.TabsOpen -> 300.dp
         else                 -> 326.dp
@@ -92,12 +92,11 @@ fun OBIslandNavBar(
     }
     val targetRadius = if (isCollapsed) 50.dp else 36.dp
 
-    val smoothEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
-    val smoothDp = tween<androidx.compose.ui.unit.Dp>(durationMillis = 280, easing = smoothEasing)
+    val iosSpringDp = spring<androidx.compose.ui.unit.Dp>(dampingRatio = 0.85f, stiffness = 300f)
 
-    val animWidth  by animateDpAsState(targetWidth,  smoothDp,  label = "island_w")
-    val animHeight by animateDpAsState(targetHeight, smoothDp,  label = "island_h")
-    val animRadius by animateDpAsState(targetRadius, smoothDp,  label = "island_r")
+    val animWidth  by animateDpAsState(targetWidth,  iosSpringDp, label = "island_w")
+    val animHeight by animateDpAsState(targetHeight, iosSpringDp, label = "island_h")
+    val animRadius by animateDpAsState(targetRadius, iosSpringDp, label = "island_r")
 
     // ── Background: islandBg token ──────────────────────────────────────────
     val islandBg = g.islandBg   // dark: rgba(8,10,22,0.55)  light: rgba(255,255,255,0.42)
@@ -166,7 +165,7 @@ fun OBIslandNavBar(
                             // Sliding indicator pill
                             val indicatorOffset by animateDpAsState(
                                 targetValue   = if (tabMode == TabMode.Private) (animWidth / 2 - 8.dp) else 0.dp,
-                                animationSpec = tween(280, easing = smoothEasing),
+                                animationSpec = tween(280, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
                                 label         = "tab_indicator",
                             )
                             Box(
@@ -437,7 +436,7 @@ private fun HomeIcon(color: Color) {
             cubicTo(21 * sx, 10.6f * sy, 20.6f * sx, 9.8f * sy, 20 * sx, 9.2f * sy)
             lineTo(14.5f * sx, 4.4f * sy)
             // Q bezier for peak: Q12 2.2 9.5 4.4
-            quadraticBezierTo(12 * sx, 2.2f * sy, 9.5f * sx, 4.4f * sy)
+            quadraticTo(12 * sx, 2.2f * sy, 9.5f * sx, 4.4f * sy)
             lineTo(4 * sx, 9.2f * sy)
             cubicTo(3.4f * sx, 9.8f * sy, 3 * sx, 10.6f * sy, 3 * sx, 11.5f * sy)
             close()
