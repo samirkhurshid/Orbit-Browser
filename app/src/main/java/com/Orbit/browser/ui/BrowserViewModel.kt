@@ -678,7 +678,7 @@ class BrowserViewModel @Inject constructor(
     }
 
     fun fetchLiveWeather(context: Context) {
-        viewModelScope.launch {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             _ui.update { it.copy(weatherState = it.weatherState.copy(loading = true)) }
             try {
                 var lat: Double? = null
@@ -714,7 +714,23 @@ class BrowserViewModel @Inject constructor(
                     }
                 }
 
+                var resolvedCity = "Current Location"
                 if (lat != null && lon != null) {
+                    try {
+                        if (android.location.Geocoder.isPresent()) {
+                            val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                            @Suppress("DEPRECATION")
+                            val addresses = geocoder.getFromLocation(lat, lon, 1)
+                            if (!addresses.isNullOrEmpty()) {
+                                val addr = addresses[0]
+                                val city = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: addr.countryName
+                                if (!city.isNullOrBlank()) {
+                                    resolvedCity = city
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+
                     val result = weatherRepository.getWeather(lat, lon)
                     if (result != null) {
                         prefs.saveWeatherData(result.temperature, result.weatherCode)
@@ -723,6 +739,7 @@ class BrowserViewModel @Inject constructor(
                                 weatherState = WeatherState(
                                     kind = result.weatherKind,
                                     temp = result.temperature.toInt(),
+                                    cityName = resolvedCity,
                                     loading = false
                                 )
                             )
@@ -739,6 +756,7 @@ class BrowserViewModel @Inject constructor(
                         weatherState = WeatherState(
                             kind = cachedKind,
                             temp = cachedTemp.toInt(),
+                            cityName = resolvedCity,
                             loading = false
                         )
                     )
@@ -751,6 +769,7 @@ class BrowserViewModel @Inject constructor(
     }
 
     fun toggleWeatherEffects(context: Context, enabled: Boolean) {
+        _ui.update { it.copy(showWeatherEffects = enabled) }
         viewModelScope.launch {
             prefs.setShowWeatherEffects(enabled)
             if (enabled) {

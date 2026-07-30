@@ -267,17 +267,32 @@ fun WeatherDetailModal(
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss
     ) {
+        val wallpaperGradient = if (isDark) {
+            Brush.linearGradient(
+                colors = listOf(
+                    Color(0xFF0F172A).copy(alpha = 0.96f),
+                    Color(0xFF1E1B4B).copy(alpha = 0.96f),
+                    Color(0xFF090A15).copy(alpha = 0.98f)
+                )
+            )
+        } else {
+            Brush.linearGradient(
+                colors = listOf(
+                    Color(0xFFFFFFFF).copy(alpha = 0.98f),
+                    Color(0xFFEEF2FF).copy(alpha = 0.98f),
+                    Color(0xFFE2E8F0).copy(alpha = 0.98f)
+                )
+            )
+        }
+
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.95f)
+                .fillMaxWidth(0.92f)
                 .frostedGlass(isDark = isDark, shape = RoundedCornerShape(32.dp), blurRadius = 36.dp)
-                .background(
-                    if (isDark) Color(0xFF0C1022).copy(alpha = 0.94f)
-                    else Color(0xFFF1F5F9).copy(alpha = 0.96f)
-                )
+                .background(wallpaperGradient)
                 .border(
-                    width = 1.dp,
-                    color = if (isDark) Color.White.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.10f),
+                    width = 1.5.dp,
+                    color = if (isDark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f),
                     shape = RoundedCornerShape(32.dp)
                 )
                 .padding(24.dp)
@@ -292,18 +307,13 @@ fun WeatherDetailModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(text = "📍", fontSize = 18.sp)
                         Text(
-                            text = weather.cityName,
+                            text = weather.cityName.ifBlank { "Current Location" },
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
                             color = g.txColor
-                        )
-                        Text(
-                            text = "Live Weather Update",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = g.tx2Color
                         )
                     }
 

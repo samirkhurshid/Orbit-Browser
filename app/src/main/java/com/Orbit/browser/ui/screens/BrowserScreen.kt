@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -827,40 +828,52 @@ private fun ContextMenuSheet(
 
     val targetUrl = if (link.isNotBlank()) link else img
 
+    val wallpaperGradient = if (isDark) {
+        Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF0F172A),
+                Color(0xFF1E1B4B),
+                Color(0xFF090A15)
+            )
+        )
+    } else {
+        Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFFFFFFF),
+                Color(0xFFEEF2FF),
+                Color(0xFFE2E8F0)
+            )
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                if (isDark) Color(0xFF040510).copy(alpha = 0.65f)
-                else Color(0xFFC8D2F0).copy(alpha = 0.65f)
-            )
+            .background(Color.Black.copy(alpha = 0.55f))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null,
                 onClick           = onDismiss,
             ),
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .frostedGlass(isDark = isDark, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), blurRadius = 32.dp)
+                .fillMaxWidth(0.88f)
+                .clip(RoundedCornerShape(24.dp))
+                .background(wallpaperGradient)
+                .border(
+                    width = 1.5.dp,
+                    color = if (isDark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(24.dp)
+                )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication        = null,
                 ) { /* consume */ }
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(20.dp),
         ) {
             Column {
-                Box(
-                    modifier = Modifier
-                        .width(40.dp).height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(g.glassBorder2)
-                        .align(Alignment.CenterHorizontally),
-                )
-                Spacer(Modifier.height(16.dp))
 
                 val titleText = if (title.isNotBlank()) title else targetUrl
                 Text(
