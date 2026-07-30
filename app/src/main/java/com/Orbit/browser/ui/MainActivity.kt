@@ -363,7 +363,7 @@ private fun MeshBackground() {
     val orb2Clr = theme.effectiveA2
 
     Box(modifier = Modifier.fillMaxSize().background(baseBg)) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize().graphicsLayer()) {
             val w = size.width
             val h = size.height
 

@@ -47,7 +47,7 @@ val LocalHazeState = staticCompositionLocalOf<HazeState?> { null }
 fun Modifier.frostedGlass(
     isDark: Boolean = true,
     shape: Shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-    blurRadius: Dp = 32.dp,
+    blurRadius: Dp = 16.dp,
     borderWidth: Dp = 0.5.dp,
     accentColor: Color? = null,
     isFocused: Boolean = false,

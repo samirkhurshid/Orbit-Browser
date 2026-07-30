@@ -43,7 +43,7 @@ import com.orbit.browser.ui.theme.WEATHER_LABEL
 import com.orbit.browser.ui.theme.OBThemeConfig
 import com.orbit.browser.ui.theme.getTimeSlot
 import com.orbit.browser.ui.components.WeatherDetailModal
-import coil.compose.SubcomposeAsyncImage
+import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import java.util.Calendar
 
@@ -550,29 +550,13 @@ private fun GlassTile(
                 modifier = Modifier.size(24.dp)
             )
         } else {
-            SubcomposeAsyncImage(
+            AsyncImage(
                 model              = faviconUrl,
                 contentDescription = null,
                 contentScale       = androidx.compose.ui.layout.ContentScale.Fit,
                 modifier           = Modifier
                     .size(28.dp)
                     .clip(androidx.compose.foundation.shape.CircleShape),
-                error = {
-                    Icon(
-                        imageVector = Icons.Default.Public,
-                        contentDescription = null,
-                        tint = g.txColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                loading = {
-                    Icon(
-                        imageVector = Icons.Default.Public,
-                        contentDescription = null,
-                        tint = g.txColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
             )
         }
     }
@@ -1021,13 +1005,11 @@ private fun NewsCard(
                 contentAlignment = Alignment.Center,
             ) {
                 if (!item.imageUrl.isNullOrBlank()) {
-                    SubcomposeAsyncImage(
+                    AsyncImage(
                         model = item.imageUrl,
                         contentDescription = null,
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
-                        error = { Text(item.emoji, fontSize = 46.sp) },
-                        loading = { Text(item.emoji, fontSize = 46.sp) }
                     )
                 } else {
                     Text(item.emoji, fontSize = 46.sp)
