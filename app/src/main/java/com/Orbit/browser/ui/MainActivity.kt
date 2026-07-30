@@ -359,7 +359,8 @@ private fun MeshBackground() {
     val theme = LocalOBTheme.current
     val isDark = theme.isDark
 
-    val baseBg  = if (isDark) Color(0xFF06070F) else Color(0xFFFFFFFF)
+    // Solid base: pure white for light mode (visible on most of screen), pure black for dark mode
+    val baseBg  = if (isDark) Color(0xFF05060C) else Color(0xFFFFFFFF)
     val orb1Clr = theme.effectiveA1
     val orb2Clr = theme.effectiveA2
 
@@ -368,73 +369,41 @@ private fun MeshBackground() {
             val w = size.width
             val h = size.height
 
-            // 1. Primary Accent Gradient Orb (Top Left - Header)
-            val r1 = w * 1.1f
+            // 1. Top-Left Corner Gradient (Main Color - Equal Strength)
+            // Radiates smoothly from top-left (0,0) across upper left section
+            val r1 = w * 1.15f
+            val maxAlpha = if (isDark) 0.38f else 0.45f
             drawCircle(
                 brush = Brush.radialGradient(
                     colorStops = arrayOf(
-                        0.0f to orb1Clr.copy(alpha = if (isDark) 0.38f else 0.48f),
-                        0.45f to orb1Clr.copy(alpha = if (isDark) 0.18f else 0.24f),
-                        0.80f to orb1Clr.copy(alpha = if (isDark) 0.04f else 0.06f),
+                        0.0f to orb1Clr.copy(alpha = maxAlpha),
+                        0.35f to orb1Clr.copy(alpha = maxAlpha * 0.55f),
+                        0.70f to orb1Clr.copy(alpha = maxAlpha * 0.18f),
                         1.0f to Color.Transparent,
                     ),
-                    center = androidx.compose.ui.geometry.Offset(w * 0.20f, h * 0.06f),
+                    center = androidx.compose.ui.geometry.Offset(0f, 0f),
                     radius = r1,
                 ),
                 radius = r1,
-                center = androidx.compose.ui.geometry.Offset(w * 0.20f, h * 0.06f),
+                center = androidx.compose.ui.geometry.Offset(0f, 0f),
             )
 
-            // 2. Secondary Complementary Accent Gradient Orb (Top Right - Header)
-            val r2 = w * 1.0f
+            // 2. Bottom-Right Corner Gradient (Secondary Color - Exact Same Strength as Top-Left!)
+            // Radiates smoothly from bottom-right (w, h) across lower right section
+            val r2 = w * 1.15f
             drawCircle(
                 brush = Brush.radialGradient(
                     colorStops = arrayOf(
-                        0.0f to orb2Clr.copy(alpha = if (isDark) 0.34f else 0.42f),
-                        0.50f to orb2Clr.copy(alpha = if (isDark) 0.14f else 0.18f),
-                        0.85f to orb2Clr.copy(alpha = if (isDark) 0.03f else 0.04f),
+                        0.0f to orb2Clr.copy(alpha = maxAlpha),
+                        0.35f to orb2Clr.copy(alpha = maxAlpha * 0.55f),
+                        0.70f to orb2Clr.copy(alpha = maxAlpha * 0.18f),
                         1.0f to Color.Transparent,
                     ),
-                    center = androidx.compose.ui.geometry.Offset(w * 0.80f, h * 0.12f),
+                    center = androidx.compose.ui.geometry.Offset(w, h),
                     radius = r2,
                 ),
                 radius = r2,
-                center = androidx.compose.ui.geometry.Offset(w * 0.80f, h * 0.12f),
-            )
-
-            // 3. Subtle Mid-Header Gradient Shift (Blends slightly different shade of same color type)
-            val r3 = w * 0.9f
-            val midShadeClr = Color(
-                red = (orb1Clr.red + orb2Clr.red) / 2f,
-                green = (orb1Clr.green + orb2Clr.green) / 2f,
-                blue = (orb1Clr.blue + orb2Clr.blue) / 2f,
-                alpha = 1.0f
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(
-                        0.0f to midShadeClr.copy(alpha = if (isDark) 0.25f else 0.30f),
-                        0.60f to midShadeClr.copy(alpha = if (isDark) 0.08f else 0.10f),
-                        1.0f to Color.Transparent,
-                    ),
-                    center = androidx.compose.ui.geometry.Offset(w * 0.50f, h * 0.18f),
-                    radius = r3,
-                ),
-                radius = r3,
-                center = androidx.compose.ui.geometry.Offset(w * 0.50f, h * 0.18f),
-            )
-
-            // 4. Smooth Linear Fade: Ensures White (Light Mode) or Black (Dark Mode) covers MOST of the screen!
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0.0f to Color.Transparent,
-                        0.22f to Color.Transparent,
-                        0.38f to baseBg.copy(alpha = 0.70f),
-                        0.48f to baseBg,
-                        1.0f to baseBg,
-                    )
-                )
+                center = androidx.compose.ui.geometry.Offset(w, h),
             )
         }
     }
