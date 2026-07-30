@@ -54,17 +54,17 @@ fun Modifier.frostedGlass(
 ): Modifier = composed {
     val hazeState = LocalHazeState.current
 
-    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFE6EDFA)
-    val tintAlpha = if (isDark) 0.50f else 0.45f
+    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFFFFFFF)
+    val tintAlpha = if (isDark) 0.50f else 0.50f
 
-    // Increased transparency in light mode (0.38f fill) - ultra see-through crystal frosted glass
+    // High transparency in light mode (0.38f fill) - bright, crystal frosted glass
     val glassmorphismBg = if (isDark) {
         Color.White.copy(alpha = 0.05f)
     } else {
         Color.White.copy(alpha = 0.38f)
     }
 
-    // Clean, subtle glass rim border - no bright specular top light reflections
+    // Bright, crisp glass rim border in light mode - eliminates dullness and pops frosted cards
     val glassBorder = if (accentColor != null) {
         accentColor.copy(alpha = 0.35f)
     } else if (isFocused) {
@@ -72,7 +72,7 @@ fun Modifier.frostedGlass(
     } else if (isDark) {
         Color.White.copy(alpha = 0.08f)
     } else {
-        Color.Black.copy(alpha = 0.06f)
+        Color.White.copy(alpha = 0.75f)
     }
 
     var m = this.clip(shape)
