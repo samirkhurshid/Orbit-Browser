@@ -54,57 +54,25 @@ fun Modifier.frostedGlass(
 ): Modifier = composed {
     val hazeState = LocalHazeState.current
 
-    val tintColor = if (isDark) Color(0xFF070914) else Color(0xFFE8EEFC)
-    val tintAlpha = if (isDark) 0.62f else 0.72f
+    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFE6EDFA)
+    val tintAlpha = if (isDark) 0.50f else 0.60f
 
-    // Crystalline Glassmorphism background fill - deeper opacity for rich frosted glass
+    // Pure Glassmorphism background fill - uniform subtle translucency without light reflect / white shine gradients
     val glassmorphismBg = if (isDark) {
-        Brush.verticalGradient(
-            colorStops = arrayOf(
-                0.0f to Color.White.copy(alpha = 0.16f),
-                0.5f to Color.White.copy(alpha = 0.08f),
-                1.0f to Color(0x40000000)
-            )
-        )
+        Color.White.copy(alpha = 0.05f)
     } else {
-        Brush.verticalGradient(
-            colorStops = arrayOf(
-                0.0f to Color.White.copy(alpha = 0.85f),
-                0.5f to Color.White.copy(alpha = 0.68f),
-                1.0f to Color.White.copy(alpha = 0.55f)
-            )
-        )
+        Color.White.copy(alpha = 0.60f)
     }
 
-    // Specular Glass Rim Reflection & Border
+    // Clean, subtle glass rim border - no bright specular top light reflections
     val glassBorder = if (accentColor != null) {
-        Brush.verticalGradient(
-            listOf(
-                accentColor.copy(alpha = 0.65f),
-                accentColor.copy(alpha = 0.20f)
-            )
-        )
+        accentColor.copy(alpha = 0.35f)
     } else if (isFocused) {
-        Brush.verticalGradient(
-            listOf(
-                Color(0xFF60A5FA).copy(alpha = 0.75f),
-                Color(0xFF3B82F6).copy(alpha = 0.30f)
-            )
-        )
+        Color(0xFF3B82F6).copy(alpha = 0.45f)
     } else if (isDark) {
-        Brush.verticalGradient(
-            listOf(
-                Color.White.copy(alpha = 0.25f),
-                Color.White.copy(alpha = 0.06f)
-            )
-        )
+        Color.White.copy(alpha = 0.08f)
     } else {
-        Brush.verticalGradient(
-            listOf(
-                Color.White.copy(alpha = 0.90f),
-                Color.White.copy(alpha = 0.40f)
-            )
-        )
+        Color.Black.copy(alpha = 0.06f)
     }
 
     var m = this.clip(shape)
@@ -115,12 +83,12 @@ fun Modifier.frostedGlass(
             backgroundColor = tintColor
             tints = listOf(HazeTint(tintColor.copy(alpha = tintAlpha)))
             noiseFactor = 0f
-        }.background(brush = glassmorphismBg, shape = shape)
+        }.background(color = glassmorphismBg, shape = shape)
     } else {
-        m.background(brush = glassmorphismBg, shape = shape)
+        m.background(color = glassmorphismBg, shape = shape)
     }
 
-    m = m.border(width = borderWidth, brush = glassBorder, shape = shape)
+    m = m.border(width = borderWidth, color = glassBorder, shape = shape)
 
     return@composed m
 }

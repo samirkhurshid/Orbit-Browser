@@ -918,7 +918,7 @@ private fun FrequentlyVisitedCard(
     val isDark = theme.isDark
     val displaySites = (sites.takeIf { it.isNotEmpty() } ?: FALLBACK_FREQUENT).take(8)
 
-    FrostedCard(theme = theme, a1 = a2, a2 = a1) {
+    FrostedCard(theme = theme) {
         // Header
         Row(
             modifier = Modifier

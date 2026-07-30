@@ -170,44 +170,15 @@ fun PrivacyStatChip(
 fun FrostedCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp   = 28.dp,
-    accent1: Color,
-    accent2: Color,
+    theme: com.orbit.browser.ui.theme.OBThemeConfig,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val isDark = theme.isDark
     val shape = RoundedCornerShape(cornerRadius)
-    val bgBrush = Brush.linearGradient(
-        colors = listOf(
-            accent1.copy(alpha = 0.09f),
-            accent2.copy(alpha = 0.06f),
-            Color.White.copy(alpha = 0.04f)
-        )
-    )
 
     val baseModifier = modifier
-        .clip(shape)
-        .background(bgBrush)
-        .drawBehind {
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(accent1.copy(alpha = 0.12f), Color.Transparent),
-                    center = Offset(0f, 0f),
-                    radius = size.maxDimension * 0.7f
-                ),
-                radius = size.maxDimension * 0.7f,
-                center = Offset(0f, 0f)
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(accent2.copy(alpha = 0.09f), Color.Transparent),
-                    center = Offset(size.width, size.height),
-                    radius = size.maxDimension * 0.7f
-                ),
-                radius = size.maxDimension * 0.7f,
-                center = Offset(size.width, size.height)
-            )
-        }
-        .border(1.dp, accent1.copy(alpha = 0.19f), shape)
+        .frostedGlass(isDark = isDark, shape = shape, blurRadius = 32.dp)
 
     if (onClick != null) {
         Box(
@@ -221,24 +192,6 @@ fun FrostedCard(
     } else {
         Box(modifier = baseModifier, content = content)
     }
-}
-
-@Composable
-fun FrostedCard(
-    modifier: Modifier = Modifier,
-    cornerRadius: Dp   = 28.dp,
-    theme: com.orbit.browser.ui.theme.OBThemeConfig,
-    onClick: (() -> Unit)? = null,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    FrostedCard(
-        modifier     = modifier,
-        cornerRadius = cornerRadius,
-        accent1      = theme.effectiveA1,
-        accent2      = theme.effectiveA2,
-        onClick      = onClick,
-        content      = content
-    )
 }
 
 fun Modifier.glowShadow(color: Color, radius: Dp = 24.dp): Modifier = this.drawBehind {
