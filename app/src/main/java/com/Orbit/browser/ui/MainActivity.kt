@@ -347,9 +347,21 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 androidx.compose.ui.viewinterop.AndroidView(
-                    factory = {
-                        (customVideoView.parent as? android.view.ViewGroup)?.removeView(customVideoView)
-                        customVideoView
+                    factory = { ctx ->
+                        android.widget.FrameLayout(ctx).apply {
+                            layoutParams = android.view.ViewGroup.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                            (customVideoView.parent as? android.view.ViewGroup)?.removeView(customVideoView)
+                            addView(
+                                customVideoView,
+                                android.widget.FrameLayout.LayoutParams(
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                                )
+                            )
+                        }
                     },
                     modifier = Modifier.fillMaxSize()
                 )

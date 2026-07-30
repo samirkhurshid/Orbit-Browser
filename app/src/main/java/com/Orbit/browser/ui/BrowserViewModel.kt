@@ -514,7 +514,6 @@ class BrowserViewModel @Inject constructor(
                 canGoForward = false,
             )
         }
-        _commands.tryEmit(BrowserCommand.LoadUrl("about:blank", clearHistory = true))
     }
 
     fun openSearch() {
