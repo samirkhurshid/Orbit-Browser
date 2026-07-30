@@ -255,9 +255,11 @@ class BrowserViewModel @Inject constructor(
 
     fun goForward() {
         if (_ui.value.screen == BrowserScreen.Home) {
-            val lastUrl = tabManager.activeTab.value?.lastVisitedUrl ?: ""
-            if (lastUrl.isNotBlank() && lastUrl != "orbit://home") {
-                navigate(lastUrl)
+            val activeTab = tabManager.activeTab.value
+            val activeUrl = activeTab?.url?.takeIf { it.isNotBlank() && it != "orbit://home" }
+                ?: activeTab?.lastVisitedUrl?.takeIf { it.isNotBlank() && it != "orbit://home" }
+            if (activeUrl != null) {
+                _ui.update { it.copy(screen = BrowserScreen.Browser) }
                 return
             }
         }
