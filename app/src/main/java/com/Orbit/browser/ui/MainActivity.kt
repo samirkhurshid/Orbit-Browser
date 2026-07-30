@@ -178,12 +178,14 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
         // etc.) will show blurred behind them via Haze.
         Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
 
-            MeshBackground()
+            if (ui.screen != BrowserScreen.TabSwitcher) {
+                MeshBackground()
 
-            // Weather overlay: tint + fog + particles + frost
-            // Dynamic theme only — static themes show clean backgrounds
-            if (ui.theme == OBThemePreset.Dynamic) {
-                WeatherOverlayLayer()
+                // Weather overlay: tint + fog + particles + frost
+                // Dynamic theme only — static themes show clean backgrounds
+                if (ui.theme == OBThemePreset.Dynamic) {
+                    WeatherOverlayLayer()
+                }
             }
 
             // Persistent WebView stack (ALWAYS mounted so YouTube & tab states are NEVER lost)

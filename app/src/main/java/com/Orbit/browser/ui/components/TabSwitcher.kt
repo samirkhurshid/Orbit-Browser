@@ -501,11 +501,25 @@ private fun TabCard(
 
     val cardAlpha = (1f - (kotlin.math.abs(animatedOffsetX) / 450f)).coerceIn(0f, 1f)
 
+    val activeBezelBorder = if (isActive) {
+        Modifier.border(
+            width = 2.5.dp,
+            brush = Brush.linearGradient(listOf(a1, theme.effectiveA2)),
+            shape = RoundedCornerShape(22.dp)
+        )
+    } else {
+        Modifier.border(
+            width = 1.dp,
+            color = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.08f),
+            shape = RoundedCornerShape(22.dp)
+        )
+    }
+
     Box(
         modifier = Modifier
             .scale(scale)
             .fillMaxWidth()
-            .height(225.dp) // TALLER height matching screenshot ratio
+            .height(260.dp) // Taller height matching screenshot ratio
             .graphicsLayer {
                 translationX = animatedOffsetX
                 alpha        = cardAlpha
@@ -526,12 +540,9 @@ private fun TabCard(
                     }
                 )
             }
-            .frostedGlass(
-                isDark = isDark,
-                shape = RoundedCornerShape(22.dp),
-                blurRadius = 22.dp,
-                accentColor = if (isActive) (groupColor ?: a1) else null
-            )
+            .clip(RoundedCornerShape(22.dp))
+            .background(if (isDark) Color(0xFF101322) else Color(0xFFE2E8F5))
+            .then(activeBezelBorder)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null,
@@ -546,7 +557,7 @@ private fun TabCard(
             // Card Header Bar (Favicon + Site Title + Circular Grey Close Button)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier          = Modifier.padding(bottom = 8.dp, start = 2.dp, end = 2.dp),
+                modifier          = Modifier.padding(bottom = 8.dp, start = 4.dp, end = 4.dp),
             ) {
                 // Favicon / Home Icon
                 if (isHomeTab) {
@@ -584,7 +595,7 @@ private fun TabCard(
                 // Title
                 Text(
                     text       = if (isHomeTab) (if (tab.isPrivate) "Incognito Home" else "Home") else tab.title.ifBlank { "New Tab" },
-                    fontSize   = 12.sp,
+                    fontSize   = 12.5.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis,
@@ -611,22 +622,21 @@ private fun TabCard(
                 }
             }
 
-            // Taller Inner Preview Image Area (Thin 10dp symmetrical bezels matching left & right margins)
+            // Taller Inner Preview Area (Clean white rounded thumbnail preview matching screenshot)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (tab.isPrivate) Color(0xFF501478).copy(alpha = 0.22f)
-                        else if (isDark) Color.White.copy(alpha = 0.05f)
-                        else Color.Black.copy(alpha = 0.04f)
+                        if (tab.isPrivate) Color(0xFF1E152A)
+                        else Color.White
                     )
                     .border(
-                        1.dp,
-                        if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.15f)
-                        else Color.White.copy(alpha = 0.06f),
-                        RoundedCornerShape(14.dp),
+                        0.5.dp,
+                        if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.2f)
+                        else Color.Black.copy(alpha = 0.08f),
+                        RoundedCornerShape(16.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -726,7 +736,7 @@ private fun NewTabCard(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(225.dp)
+            .height(260.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(if (isDark) Color.White.copy(alpha = 0.05f) else Color.White.copy(alpha = 0.45f))
             .border(
@@ -763,7 +773,7 @@ private fun NewPrivateTabCard(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(225.dp)
+            .height(260.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(Color(0xFF501478).copy(alpha = 0.18f))
             .border(1.5.dp, violet.copy(alpha = 0.30f), RoundedCornerShape(22.dp))
