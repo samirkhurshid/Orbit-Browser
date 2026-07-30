@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -539,6 +540,76 @@ fun RedesignedDownloadTile(
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { viewModel.cancelDownload(context, download) }
                             .padding(horizontal = 6.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        } else if (download.status == DownloadStatus.Cancelled || download.status == DownloadStatus.Failed) {
+            // ─────────────────────────────────────────────────────────────
+            // CANCELLED / FAILED DOWNLOAD ITEM TILE
+            // ─────────────────────────────────────────────────────────────
+            val isCancelled = download.status == DownloadStatus.Cancelled
+            val statusLabel = if (isCancelled) "Download Cancelled" else "Download Failed"
+            val statusColor = if (isCancelled) g.tx3Color else Color(0xFFEF4444)
+
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    DownloadThumbnailItem(
+                        filePath = download.filePath,
+                        filename = download.filename,
+                        mimeType = download.mimeType,
+                        size = 42.dp
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        // 1. Filename with strikethrough (cross with dash) and grey text
+                        Text(
+                            text = download.filename,
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = g.tx3Color,
+                            textDecoration = TextDecoration.LineThrough,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(3.dp))
+                        // 2. Mentioned Cancelled or Failed
+                        Text(
+                            text = statusLabel,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = statusColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = cleanSiteAddress,
+                        fontSize = 10.5.sp,
+                        color = g.tx3Color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    // Retry option
+                    Text(
+                        text = "Retry",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = a1,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                viewModel.startDownload(context, download.url, "", "", download.mimeType, download.sizeBytes)
+                            }
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
             }
