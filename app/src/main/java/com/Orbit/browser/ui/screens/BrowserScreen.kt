@@ -142,7 +142,7 @@ fun BrowserScreen(
                     .fillMaxWidth(),
             ) {
                 // Beautiful loading placeholder (fades in to cover previous page content while new page loads)
-                val showPlaceholder = activeTab?.isLoading == true || activeTab?.url == "orbit://home" || activeTab?.url.isNullOrBlank()
+                val showPlaceholder = activeTab?.isLoading == true
                 androidx.compose.animation.AnimatedVisibility(
                     visible = showPlaceholder,
                     enter   = fadeIn(tween(180)),
@@ -268,7 +268,13 @@ fun PersistentWebViewStack(
         viewModel.commands.collect { command ->
             val activeWv = webViewMap[activeTabId]
             when (command) {
-                is BrowserCommand.GoBack    -> activeWv?.goBack()
+                is BrowserCommand.GoBack    -> {
+                    if (activeWv?.canGoBack() == true) {
+                        activeWv.goBack()
+                    } else {
+                        viewModel.goHome()
+                    }
+                }
                 is BrowserCommand.GoForward -> activeWv?.goForward()
                 is BrowserCommand.Refresh   -> activeWv?.reload()
                 is BrowserCommand.LoadUrl   -> {
@@ -338,11 +344,7 @@ fun PersistentWebViewStack(
                             if (ui.findInPageOpen) {
                                 wv.findInPage(ui.findInPageQuery)
                             }
-                            if (tab.url == "orbit://home" || tab.url.isBlank()) {
-                                if (wv.currentMainUrl != "orbit://home") {
-                                    wv.clearWebPage()
-                                }
-                            } else if (tab.url.isNotBlank() && !tab.url.startsWith("orbit://") && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
+                            if (tab.url.isNotBlank() && !tab.url.startsWith("orbit://") && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
                                 wv.currentMainUrl = tab.url
                                 wv.loadUrl(tab.url)
                             }

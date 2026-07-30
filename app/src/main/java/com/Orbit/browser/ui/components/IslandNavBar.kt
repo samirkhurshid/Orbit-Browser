@@ -266,8 +266,8 @@ fun OBIslandNavBar(
                     // ──────────────────────────────────────────────────────────
                     else -> {
                         val isHome        = uiState.screen == BrowserScreen.Home
-                        val hasActivePage = activeTab?.lastVisitedUrl?.isNotBlank() == true && activeTab?.lastVisitedUrl != "orbit://home"
-                        val canGoBack     = if (isHome) false else ((activeTab?.canGoBack == true) || hasActivePage)
+                        val hasActivePage = activeTab?.url?.isNotBlank() == true && activeTab?.url != "orbit://home"
+                        val canGoBack     = if (isHome) false else true
                         val canGoForward  = if (isHome) hasActivePage else (activeTab?.canGoForward == true)
 
                         Row(

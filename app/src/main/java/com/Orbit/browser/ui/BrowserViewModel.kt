@@ -250,12 +250,7 @@ class BrowserViewModel @Inject constructor(
         if (_ui.value.screen == BrowserScreen.Home) {
             return
         }
-        val activeTab = tabManager.activeTab.value
-        if (activeTab?.canGoBack == true) {
-            _commands.tryEmit(BrowserCommand.GoBack)
-        } else {
-            goHome()
-        }
+        _commands.tryEmit(BrowserCommand.GoBack)
     }
 
     fun goForward() {
@@ -506,15 +501,6 @@ class BrowserViewModel @Inject constructor(
     fun goHome() {
         closeAll()
         _ui.update { it.copy(screen = BrowserScreen.Home) }
-        tabManager.updateActiveTab { tab ->
-            tab.copy(
-                url          = "orbit://home",
-                displayUrl   = "",
-                searchQuery  = "",
-                canGoBack    = false,
-                canGoForward = false,
-            )
-        }
     }
 
     fun openSearch() {
