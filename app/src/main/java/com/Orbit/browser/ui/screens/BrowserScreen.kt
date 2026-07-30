@@ -142,7 +142,7 @@ fun BrowserScreen(
                     .fillMaxWidth(),
             ) {
                 // Beautiful loading placeholder (fades in to cover previous page content while new page loads)
-                val showPlaceholder = activeTab?.isLoading == true
+                val showPlaceholder = activeTab?.isLoading == true || activeTab?.url == "orbit://home" || activeTab?.url.isNullOrBlank()
                 androidx.compose.animation.AnimatedVisibility(
                     visible = showPlaceholder,
                     enter   = fadeIn(tween(180)),
@@ -338,7 +338,11 @@ fun PersistentWebViewStack(
                             if (ui.findInPageOpen) {
                                 wv.findInPage(ui.findInPageQuery)
                             }
-                            if (tab.url.isNotBlank() && tab.url != "orbit://home" && !tab.url.startsWith("orbit://") && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
+                            if (tab.url == "orbit://home" || tab.url.isBlank()) {
+                                if (wv.currentMainUrl != "orbit://home") {
+                                    wv.clearWebPage()
+                                }
+                            } else if (tab.url.isNotBlank() && !tab.url.startsWith("orbit://") && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
                                 wv.currentMainUrl = tab.url
                                 wv.loadUrl(tab.url)
                             }

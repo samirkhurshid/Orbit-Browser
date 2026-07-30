@@ -468,6 +468,16 @@ class OBWebView @JvmOverloads constructor(
         }
     }
 
+    fun clearWebPage() {
+        currentMainUrl = "orbit://home"
+        try {
+            super.loadUrl("about:blank")
+            clearHistory()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun loadUrl(url: String) {
         if (url == "orbit://home" || url.startsWith("orbit://")) return
         super.loadUrl(url)
