@@ -300,7 +300,7 @@ private fun FullNewsCard(
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(24.dp))
             .frostedGlass(isDark = isDark, shape = RoundedCornerShape(24.dp))
-            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.88f))
+            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.40f))
             .border(1.dp, g.glassBorder, RoundedCornerShape(24.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

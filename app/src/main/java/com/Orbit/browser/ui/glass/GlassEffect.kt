@@ -54,14 +54,14 @@ fun Modifier.frostedGlass(
 ): Modifier = composed {
     val hazeState = LocalHazeState.current
 
-    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFF1F5F9)
-    val tintAlpha = if (isDark) 0.50f else 0.85f
+    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFE6EDFA)
+    val tintAlpha = if (isDark) 0.50f else 0.45f
 
-    // Reduced transparency in light mode (0.88f fill) - clean, solid ceramic-frosted glass
+    // Increased transparency in light mode (0.38f fill) - ultra see-through crystal frosted glass
     val glassmorphismBg = if (isDark) {
         Color.White.copy(alpha = 0.05f)
     } else {
-        Color.White.copy(alpha = 0.88f)
+        Color.White.copy(alpha = 0.38f)
     }
 
     // Clean, subtle glass rim border - no bright specular top light reflections

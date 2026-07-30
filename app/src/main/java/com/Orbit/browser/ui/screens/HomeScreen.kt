@@ -191,7 +191,7 @@ fun HomeScreen(
                         .padding(horizontal = 16.dp, vertical = 4.dp)
                         .clip(RoundedCornerShape(22.dp))
                         .frostedGlass(isDark = theme.isDark, shape = RoundedCornerShape(22.dp))
-                        .background(if (theme.isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.88f))
+                        .background(if (theme.isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.42f))
                         .border(1.dp, theme.glass.glassBorder, RoundedCornerShape(22.dp))
                         .clickable { viewModel.openNewsHub() }
                         .padding(horizontal = 18.dp, vertical = 14.dp),
@@ -988,7 +988,7 @@ private fun NewsCard(
             .alpha(alpha)
             .offset(y = offsetY)
             .clip(RoundedCornerShape(22.dp))
-            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.52f))
+            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.40f))
             .border(1.dp, g.glassBorder, RoundedCornerShape(22.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
