@@ -508,11 +508,7 @@ private fun TabCard(
     val cardAlpha = (1f - (kotlin.math.abs(animatedOffsetX) / 450f)).coerceIn(0f, 1f)
 
     val activeBezelBorder = if (isActive) {
-        Modifier.border(
-            width = 2.5.dp,
-            color = Color.White.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(22.dp)
-        )
+        Modifier
     } else {
         Modifier.border(
             width = 1.dp,
