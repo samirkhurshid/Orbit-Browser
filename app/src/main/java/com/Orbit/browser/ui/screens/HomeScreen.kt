@@ -86,13 +86,6 @@ fun HomeScreen(
         }
     }
 
-    // ── Infinite scroll news trigger ──────────────────────────────────────────
-    LaunchedEffect(scrollState.value) {
-        if (scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 400) {
-            viewModel.loadMoreNews()
-        }
-    }
-
     val entranceAlpha by animateFloatAsState(
         targetValue   = if (visible) 1f else 0f,
         animationSpec = tween(380, easing = FastOutSlowInEasing),
@@ -154,21 +147,34 @@ fun HomeScreen(
                 Spacer(Modifier.height(14.dp))
             }
 
-            // ── Real News & Pattern Learning Feed ────────────────────────
+            // ── Top 4 News Articles + News Hub Link ─────────────────────
             val newsArticles by viewModel.newsArticles.collectAsState()
-            val isNewsLoadingMore by viewModel.isNewsLoadingMore.collectAsState()
 
             if (ui.showNewsFeed && newsArticles.isNotEmpty()) {
-                Text(
-                    text       = "📡 For You (Personalized Feed)",
-                    fontSize   = 14.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.2).sp,
-                    color      = theme.glass.txColor,
-                    modifier   = Modifier.padding(horizontal = 20.dp, vertical = 0.dp),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text          = "📡 Top Stories",
+                        fontSize      = 14.sp,
+                        fontWeight    = FontWeight.ExtraBold,
+                        letterSpacing = (-0.2).sp,
+                        color         = theme.glass.txColor,
+                    )
+                    Text(
+                        text = "Explore All ➔",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = theme.effectiveA1,
+                        modifier = Modifier.clickable { viewModel.openNewsHub() }
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
-                newsArticles.forEachIndexed { index, news ->
+                newsArticles.take(4).forEachIndexed { index, news ->
                     NewsCard(
                         item    = news,
                         index   = index,
@@ -178,33 +184,35 @@ fun HomeScreen(
                     Spacer(Modifier.height(12.dp))
                 }
 
-                if (isNewsLoadingMore) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
+                // Full News Hub Action Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .frostedGlass(isDark = theme.isDark, shape = RoundedCornerShape(22.dp))
+                        .background(if (theme.isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.88f))
+                        .border(1.dp, theme.glass.glassBorder, RoundedCornerShape(22.dp))
+                        .clickable { viewModel.openNewsHub() }
+                        .padding(horizontal = 18.dp, vertical = 14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier
-                                .frostedGlass(isDark = theme.isDark, shape = RoundedCornerShape(20.dp), blurRadius = 16.dp)
-                                .background(if (theme.isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.6f))
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                color = theme.effectiveA1,
-                                strokeWidth = 2.dp
-                            )
-                            Text(
-                                text = "Loading more stories…",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = theme.glass.txColor
-                            )
-                        }
+                        Text(
+                            text = "📰 Explore Full News Hub & Global Sources",
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Black,
+                            color = theme.effectiveA1
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = theme.effectiveA1,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }

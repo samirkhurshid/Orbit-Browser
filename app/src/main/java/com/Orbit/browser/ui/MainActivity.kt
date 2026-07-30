@@ -203,8 +203,8 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
             AnimatedContent(
                 targetState   = ui.screen,
                 transitionSpec = {
-                    val isOpeningFullScreen = targetState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords)
-                    val isClosingFullScreen = initialState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords)
+                    val isOpeningFullScreen = targetState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords, BrowserScreen.NewsHub)
+                    val isClosingFullScreen = initialState in listOf(BrowserScreen.Bookmarks, BrowserScreen.History, BrowserScreen.Downloads, BrowserScreen.Settings, BrowserScreen.Passwords, BrowserScreen.NewsHub)
 
                     if (isOpeningFullScreen) {
                         (slideInVertically(initialOffsetY = { it }, animationSpec = tween(260, easing = figmaSpring)) + fadeIn(tween(180, easing = figmaEase))) togetherWith
@@ -242,6 +242,7 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                     BrowserScreen.Downloads -> DownloadsScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize(), lazyListState = downloadsListState)
                     BrowserScreen.Settings  -> SettingsScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize(), lazyListState = settingsListState)
                     BrowserScreen.Passwords -> PasswordVaultScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+                    BrowserScreen.NewsHub   -> NewsHubScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
                 }
             }
         }

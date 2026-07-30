@@ -119,7 +119,7 @@ data class BrowserUiState(
     val showDefaultBrowserPrompt: Boolean = false,
 )
 
-enum class BrowserScreen { Home, Browser, TabSwitcher, Bookmarks, History, Downloads, Settings, Passwords }
+enum class BrowserScreen { Home, Browser, TabSwitcher, Bookmarks, History, Downloads, Settings, Passwords, NewsHub }
 
 @HiltViewModel
 class BrowserViewModel @Inject constructor(
@@ -557,6 +557,9 @@ class BrowserViewModel @Inject constructor(
 
     fun openPasswords()  = openFullScreenDestination(BrowserScreen.Passwords)
     fun closePasswords() = goBackFromFullScreenDestination()
+
+    fun openNewsHub()  = openFullScreenDestination(BrowserScreen.NewsHub)
+    fun closeNewsHub() = goBackFromFullScreenDestination()
 
 
 

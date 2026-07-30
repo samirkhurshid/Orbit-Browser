@@ -54,14 +54,14 @@ fun Modifier.frostedGlass(
 ): Modifier = composed {
     val hazeState = LocalHazeState.current
 
-    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFE6EDFA)
-    val tintAlpha = if (isDark) 0.50f else 0.60f
+    val tintColor = if (isDark) Color(0xFF060814) else Color(0xFFF1F5F9)
+    val tintAlpha = if (isDark) 0.50f else 0.85f
 
-    // Pure Glassmorphism background fill - uniform subtle translucency without light reflect / white shine gradients
+    // Reduced transparency in light mode (0.88f fill) - clean, solid ceramic-frosted glass
     val glassmorphismBg = if (isDark) {
         Color.White.copy(alpha = 0.05f)
     } else {
-        Color.White.copy(alpha = 0.60f)
+        Color.White.copy(alpha = 0.88f)
     }
 
     // Clean, subtle glass rim border - no bright specular top light reflections
