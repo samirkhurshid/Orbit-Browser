@@ -468,6 +468,16 @@ class OBWebView @JvmOverloads constructor(
         }
     }
 
+    override fun loadUrl(url: String) {
+        if (url == "orbit://home" || url.startsWith("orbit://")) return
+        super.loadUrl(url)
+    }
+
+    override fun loadUrl(url: String, additionalHttpHeaders: Map<String, String>) {
+        if (url == "orbit://home" || url.startsWith("orbit://")) return
+        super.loadUrl(url, additionalHttpHeaders)
+    }
+
     fun loadSmart(query: String) {
         loadUrl(resolveUrl(query))
     }

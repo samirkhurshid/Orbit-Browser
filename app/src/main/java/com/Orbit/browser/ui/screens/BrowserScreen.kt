@@ -324,7 +324,7 @@ fun PersistentWebViewStack(
                                 }
                                 wv.updateDarkMode(isDark)
                                 wv.updateBlockCookies(ui.blockCookies)
-                                if (tab.url.isNotBlank()) {
+                                 if (tab.url.isNotBlank() && tab.url != "orbit://home" && !tab.url.startsWith("orbit://")) {
                                     wv.currentMainUrl = tab.url
                                     wv.loadUrl(tab.url)
                                 }
@@ -338,7 +338,7 @@ fun PersistentWebViewStack(
                             if (ui.findInPageOpen) {
                                 wv.findInPage(ui.findInPageQuery)
                             }
-                            if (tab.url.isNotBlank() && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
+                            if (tab.url.isNotBlank() && tab.url != "orbit://home" && !tab.url.startsWith("orbit://") && (wv.url.isNullOrBlank() || wv.url == "about:blank" || wv.currentMainUrl != tab.url)) {
                                 wv.currentMainUrl = tab.url
                                 wv.loadUrl(tab.url)
                             }
