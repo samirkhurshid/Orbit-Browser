@@ -61,6 +61,7 @@ fun HomeScreen(
     val quickAccess   by viewModel.quickAccessSites.collectAsState()
     val frequentSites by viewModel.frequentSites.collectAsState()
     val theme         = LocalOBTheme.current
+    var showAddDialog by remember { mutableStateOf(false) }
 
     // ── Live clock (updates every 15s, same as App.tsx useClock) ─────────
     var clockStr by remember { mutableStateOf(currentClockString()) }
@@ -124,7 +125,6 @@ fun HomeScreen(
             Spacer(Modifier.height(18.dp))
 
             // ── Quick Access card (App.tsx lines 749–787) ─────────────────
-            var showAddDialog by remember { mutableStateOf(false) }
             if (ui.showQuickAccess) {
                 QuickAccessCard(
                     theme       = theme,
@@ -133,17 +133,6 @@ fun HomeScreen(
                     onAddClick  = { showAddDialog = true },
                 )
                 Spacer(Modifier.height(14.dp))
-            }
-
-            if (showAddDialog) {
-                AddQuickAccessDialog(
-                    theme = theme,
-                    onDismiss = { showAddDialog = false },
-                    onConfirm = { title, url ->
-                        viewModel.addQuickAccessSite(title, url)
-                        showAddDialog = false
-                    }
-                )
             }
 
             // ── Privacy Shield card (App.tsx lines 790–827) ───────────────
@@ -226,6 +215,18 @@ fun HomeScreen(
                 weather = ui.weatherState,
                 theme = theme,
                 onDismiss = { viewModel.setWeatherDetailOpen(false) }
+            )
+        }
+
+        if (showAddDialog) {
+            AddQuickAccessDialog(
+                theme = theme,
+                frequentSites = frequentSites,
+                onDismiss = { showAddDialog = false },
+                onConfirm = { title, url ->
+                    viewModel.addQuickAccessSite(title, url)
+                    showAddDialog = false
+                }
             )
         }
     }
@@ -1113,6 +1114,7 @@ private fun currentClockString(): String {
 @Composable
 private fun AddQuickAccessDialog(
     theme: OBThemeConfig,
+    frequentSites: List<FrequentSite>,
     onDismiss: () -> Unit,
     onConfirm: (title: String, url: String) -> Unit,
 ) {
@@ -1123,14 +1125,20 @@ private fun AddQuickAccessDialog(
     val a1 = theme.effectiveA1
     val a2 = theme.effectiveA2
 
-    val quickSuggestions = listOf(
-        Pair("YouTube", "https://youtube.com"),
-        Pair("Google", "https://google.com"),
-        Pair("Reddit", "https://reddit.com"),
-        Pair("GitHub", "https://github.com"),
-        Pair("Amazon", "https://amazon.com"),
-        Pair("Instagram", "https://instagram.com")
-    )
+    // Suggest ONLY sites the user visits most!
+    val quickSuggestions = remember(frequentSites) {
+        val visited = frequentSites.map { site ->
+            Pair(site.title.take(16), site.url)
+        }.distinctBy { it.second }.take(8)
+
+        visited.ifEmpty {
+            listOf(
+                Pair("Google", "https://google.com"),
+                Pair("YouTube", "https://youtube.com"),
+                Pair("GitHub", "https://github.com"),
+            )
+        }
+    }
 
     Box(
         modifier = Modifier
