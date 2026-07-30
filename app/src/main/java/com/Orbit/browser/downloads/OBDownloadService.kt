@@ -370,9 +370,15 @@ class OBDownloadService : Service() {
         val etaStr = if (etaSec > 0) formatEta(etaSec) else "Downloading…"
         val percentStr = "$percent%"
 
+        val orbitLogo = try {
+            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
+        } catch (_: Exception) {
+            null
+        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setLargeIcon(orbitLogo)
             .setContentTitle("Orbit Browser · $percentStr")
             .setContentText("$filename · $etaStr")
             .setSubText("Orbit Browser")
@@ -380,8 +386,8 @@ class OBDownloadService : Service() {
             .setOnlyAlertOnce(true)
             .setProgress(100, percent, totalBytes <= 0)
             .setContentIntent(contentPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Pause", pausePendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Cancel", cancelPendingIntent)
+            .addAction(R.drawable.ic_stat_paused, "Pause", pausePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
             .build()
     }
 
@@ -409,16 +415,22 @@ class OBDownloadService : Service() {
             this, (downloadId * 10 + 2).toInt(), cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val orbitLogo = try {
+            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
+        } catch (_: Exception) {
+            null
+        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setSmallIcon(R.drawable.ic_stat_paused)
+            .setLargeIcon(orbitLogo)
             .setContentTitle("Orbit Browser")
-            .setContentText("Download Paused")
+            .setContentText("$filename · Paused")
             .setSubText("Orbit Browser")
             .setOngoing(false)
             .setContentIntent(contentPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Resume", resumePendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Cancel", cancelPendingIntent)
+            .addAction(android.R.drawable.stat_sys_download, "Resume", resumePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
             .build()
     }
 
@@ -431,9 +443,15 @@ class OBDownloadService : Service() {
             this, downloadId.toInt(), openAppIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val orbitLogo = try {
+            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
+        } catch (_: Exception) {
+            null
+        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setSmallIcon(if (isSuccess) android.R.drawable.stat_sys_download_done else android.R.drawable.stat_notify_error)
+            .setLargeIcon(orbitLogo)
             .setContentTitle("Orbit Browser")
             .setContentText("$filename · $message")
             .setSubText("Orbit Browser")
