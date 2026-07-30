@@ -221,6 +221,14 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                         // Smooth Spring Collapse out of Tab Switcher into Selected Page
                         (scaleIn(initialScale = 0.96f, animationSpec = tween(260, easing = figmaSpring)) + fadeIn(tween(200))) togetherWith
                         (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = tween(240, easing = figmaEase)) + scaleOut(targetScale = 0.94f, animationSpec = tween(240, easing = figmaEase)) + fadeOut(tween(180)))
+                    } else if (targetState == BrowserScreen.Browser) {
+                        // Open new site or click Next button: Slide in Right to Left
+                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeIn(tween(180))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { -it / 3 }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeOut(tween(180)))
+                    } else if (initialState == BrowserScreen.Browser && targetState == BrowserScreen.Home) {
+                        // Perform Back gesture/button to Home: Slide out Right until disappear
+                        (slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeIn(tween(180))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) + fadeOut(tween(180)))
                     } else {
                         fadeIn(tween(200, easing = figmaEase)) togetherWith
                         (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(240, easing = figmaSpring)) + fadeOut(tween(160, easing = figmaEase)))

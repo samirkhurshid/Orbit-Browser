@@ -292,16 +292,27 @@ fun PersistentWebViewStack(
         tabs.forEach { tab ->
             val isCurrentTabActive = tab.id == activeTabId && isBrowserActive && tab.url.isNotBlank()
             key(tab.id) {
+                val tabOffsetX by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive) 0f else if (ui.screen == com.orbit.browser.ui.BrowserScreen.Home) 1000f else -1000f,
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f),
+                    label = "tab_offset_x"
+                )
+                val tabAlpha by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive) 1f else 0f,
+                    animationSpec = tween(180),
+                    label = "tab_alpha"
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 56.dp)
                         .statusBarsPadding()
                         .graphicsLayer {
-                            alpha = if (isCurrentTabActive) 1f else 0f
+                            translationX = tabOffsetX
+                            alpha = tabAlpha
                         }
                         .run {
-                            if (!isCurrentTabActive) {
+                            if (!isCurrentTabActive && tabAlpha == 0f) {
                                 this.offset(x = (-9999).dp)
                             } else this
                         }
