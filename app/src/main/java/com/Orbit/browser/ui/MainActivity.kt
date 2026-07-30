@@ -359,7 +359,7 @@ private fun MeshBackground() {
     val theme = LocalOBTheme.current
     val isDark = theme.isDark
 
-    val baseBg  = if (isDark) Color(0xFF06070F) else Color(0xFFFFFFFF)
+    val baseBg  = if (isDark) Color(0xFF06070F) else Color(0xFFF4F7FC)
     val orb1Clr = theme.effectiveA1
     val orb2Clr = theme.effectiveA2
 
@@ -368,16 +368,14 @@ private fun MeshBackground() {
             val w = size.width
             val h = size.height
 
-            // 1. Top Left Header Glow (Time & Weather area)
-            // Light mode: Vibrant gradient blending into white.
-            // Dark mode: Subtle gradient blending into deep black.
+            // 1. Top Left Header Glow (Time & Weather area) - Bright, rich mesh
             val r1 = w * 1.35f
             drawCircle(
                 brush = Brush.radialGradient(
                     colorStops = arrayOf(
-                        0.0f to orb1Clr.copy(alpha = if (isDark) 0.22f else 0.40f),
-                        0.40f to orb1Clr.copy(alpha = if (isDark) 0.12f else 0.20f),
-                        0.80f to orb1Clr.copy(alpha = if (isDark) 0.03f else 0.05f),
+                        0.0f to orb1Clr.copy(alpha = if (isDark) 0.45f else 0.65f),
+                        0.40f to orb1Clr.copy(alpha = if (isDark) 0.25f else 0.35f),
+                        0.80f to orb1Clr.copy(alpha = if (isDark) 0.08f else 0.12f),
                         1.0f to Color.Transparent,
                     ),
                     center = androidx.compose.ui.geometry.Offset(w * 0.15f, h * 0.08f),
@@ -392,9 +390,9 @@ private fun MeshBackground() {
             drawCircle(
                 brush = Brush.radialGradient(
                     colorStops = arrayOf(
-                        0.0f to orb2Clr.copy(alpha = if (isDark) 0.18f else 0.35f),
-                        0.45f to orb2Clr.copy(alpha = if (isDark) 0.08f else 0.15f),
-                        0.85f to orb2Clr.copy(alpha = if (isDark) 0.02f else 0.03f),
+                        0.0f to orb2Clr.copy(alpha = if (isDark) 0.40f else 0.58f),
+                        0.45f to orb2Clr.copy(alpha = if (isDark) 0.20f else 0.30f),
+                        0.85f to orb2Clr.copy(alpha = if (isDark) 0.06f else 0.10f),
                         1.0f to Color.Transparent,
                     ),
                     center = androidx.compose.ui.geometry.Offset(w * 0.85f, h * 0.18f),
@@ -404,15 +402,30 @@ private fun MeshBackground() {
                 center = androidx.compose.ui.geometry.Offset(w * 0.85f, h * 0.18f),
             )
 
-            // 3. Header-to-Base Smooth Linear Gradient Blend (Fades gradient into solid bg below search bar)
+            // 3. Lower Ambient Mesh Glow (Keeps middle/lower wallpaper bright & vibrant)
+            val r3 = w * 1.10f
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colorStops = arrayOf(
+                        0.0f to orb1Clr.copy(alpha = if (isDark) 0.22f else 0.35f),
+                        0.50f to orb2Clr.copy(alpha = if (isDark) 0.10f else 0.18f),
+                        1.0f to Color.Transparent,
+                    ),
+                    center = androidx.compose.ui.geometry.Offset(w * 0.50f, h * 0.65f),
+                    radius = r3,
+                ),
+                radius = r3,
+                center = androidx.compose.ui.geometry.Offset(w * 0.50f, h * 0.65f),
+            )
+
+            // 4. Smooth Bottom Linear Fade into base background
             drawRect(
                 brush = Brush.verticalGradient(
                     colorStops = arrayOf(
                         0.0f to Color.Transparent,
-                        0.28f to Color.Transparent,
-                        0.48f to baseBg.copy(alpha = 0.85f),
-                        0.60f to baseBg,
-                        1.0f to baseBg,
+                        0.40f to Color.Transparent,
+                        0.75f to baseBg.copy(alpha = 0.55f),
+                        1.0f to baseBg.copy(alpha = 0.90f),
                     )
                 )
             )
