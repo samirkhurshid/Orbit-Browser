@@ -636,18 +636,20 @@ private fun TabCard(
                     .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
                     .background(
                         if (tab.isPrivate) Color(0xFF1E152A)
+                        else if (isHomeTab) (if (isDark) Color(0xFF090B18) else Color.White)
                         else Color.White
                     )
                     .border(
                         0.5.dp,
                         if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.2f)
+                        else if (isDark) Color.White.copy(alpha = 0.12f)
                         else Color.Black.copy(alpha = 0.08f),
                         RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isHomeTab) {
-                    // Home Page Preview State
+                    // Home Page Preview State (Black in Dark Mode, White in Light Mode)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -656,12 +658,12 @@ private fun TabCard(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background((if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)).copy(alpha = 0.14f))
-                                .border(1.dp, (if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)).copy(alpha = 0.25f), CircleShape),
+                                .background((if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1)).copy(alpha = 0.14f))
+                                .border(1.dp, (if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1)).copy(alpha = 0.25f), CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
                             HomeSvgIcon(
-                                color = if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1),
+                                color = if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1),
                                 size  = 24.dp,
                             )
                         }
@@ -670,7 +672,7 @@ private fun TabCard(
                             text       = if (tab.isPrivate) "Incognito" else "Orbit Home",
                             fontSize   = 11.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.8f) else g.tx2Color,
+                            color      = if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.8f) else if (isDark) Color.White.copy(alpha = 0.9f) else g.tx2Color,
                         )
                     }
                 } else if (tab.thumbnail != null) {
