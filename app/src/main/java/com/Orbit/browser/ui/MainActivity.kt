@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -322,12 +323,16 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
             val activity = context as? Activity
             DisposableEffect(customVideoView) {
                 val window = activity?.window
+                val origOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
                 if (window != null) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     insetsController.hide(WindowInsetsCompat.Type.systemBars())
                 }
                 onDispose {
+                    activity?.requestedOrientation = origOrientation
                     if (window != null) {
                         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                         insetsController.show(WindowInsetsCompat.Type.systemBars())

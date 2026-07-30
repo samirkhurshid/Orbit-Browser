@@ -505,16 +505,31 @@ class BrowserViewModel @Inject constructor(
     fun goHome() {
         closeAll()
         _ui.update { it.copy(screen = BrowserScreen.Home) }
+        tabManager.updateActiveTab { tab ->
+            tab.copy(
+                url          = "orbit://home",
+                displayUrl   = "",
+                searchQuery  = "",
+                canGoBack    = false,
+                canGoForward = false,
+            )
+        }
+        _commands.tryEmit(BrowserCommand.LoadUrl("about:blank", clearHistory = true))
     }
 
     fun openSearch() {
-        val active = tabManager.activeTab.value
-        val fullUrl = active?.url?.takeIf { it.isNotBlank() && it != "orbit://home" }
-            ?: active?.searchQuery?.ifBlank { OBWebView.extractSearchQueryFromUrl(active.url) ?: "" }
-            ?: ""
+        val fromHome = _ui.value.screen == BrowserScreen.Home
+        val active   = tabManager.activeTab.value
+        val fullUrl  = if (fromHome) "" else (
+            active?.url?.takeIf { it.isNotBlank() && it != "orbit://home" && it != "about:blank" }
+                ?: active?.searchQuery?.ifBlank { OBWebView.extractSearchQueryFromUrl(active.url) ?: "" }
+                ?: ""
+        )
         _ui.update { it.copy(searchOpen = true, searchQuery = fullUrl) }
         if (fullUrl.isNotBlank()) {
             onSearchQueryChanged(fullUrl)
+        } else {
+            onSearchQueryChanged("")
         }
     }
     fun closeSearch() = _ui.update { it.copy(searchOpen = false, searchQuery = "") }
