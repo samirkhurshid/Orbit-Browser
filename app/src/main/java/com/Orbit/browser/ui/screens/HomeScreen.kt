@@ -485,18 +485,14 @@ private fun FrostedCard(
 // GLASS TILE
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GLASS TILE
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun GlassTile(
-    url: String = "",
-    emoji: String = "",
-    size: Int = 58,
+    url: String,
+    modifier: Modifier = Modifier,
+    emoji: String? = null,
+    size: Int = 64,
     theme: OBThemeConfig,
     isDashed: Boolean = false,
-    modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
     val g = theme.glass
@@ -544,7 +540,8 @@ private fun GlassTile(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = LocalIndication.current,
                 onClick           = onClick,
-            ),
+            )
+            .padding(4.dp),
         contentAlignment = Alignment.Center,
     ) {
         if (isDashed) {
@@ -552,28 +549,28 @@ private fun GlassTile(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add",
                 tint = theme.effectiveA1,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp)
             )
         } else if (faviconUrl == null) {
             Icon(
                 imageVector = Icons.Default.Public,
                 contentDescription = null,
                 tint = g.txColor,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier.size(36.dp)
             )
         } else {
             SubcomposeAsyncImage(
                 model              = faviconUrl,
                 contentDescription = null,
                 modifier           = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(10.dp)),
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 error = {
                     Icon(
                         imageVector = Icons.Default.Public,
                         contentDescription = null,
                         tint = g.txColor,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                 },
                 loading = {
@@ -581,7 +578,7 @@ private fun GlassTile(
                         imageVector = Icons.Default.Public,
                         contentDescription = null,
                         tint = g.txColor,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                 },
             )
@@ -621,7 +618,7 @@ private fun QuickAccessCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -658,11 +655,11 @@ private fun QuickAccessCard(
         }
 
         val rows = displaySites.chunked(4)
-        Column(modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 18.dp)) {
+        Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 14.dp)) {
             rows.forEachIndexed { ri, row ->
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     row.forEach { site ->
                         val handleTap = {
@@ -951,27 +948,27 @@ private fun FrequentlyVisitedCard(
 
         // Horizontal scroll row (App.tsx lines 841–862)
         LazyRow(
-            contentPadding        = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier              = Modifier.padding(bottom = 16.dp),
+            contentPadding        = PaddingValues(horizontal = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier              = Modifier.padding(bottom = 14.dp),
         ) {
             itemsIndexed(displaySites) { _, site ->
                 val handleTap = { onSiteClick(site.url) }
                 Column(
                     modifier = Modifier
-                        .width(76.dp)
+                        .width(72.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = LocalIndication.current,
                             onClick           = handleTap,
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     GlassTile(
                         url     = site.url,
                         emoji   = emojiForUrl(site.url),
-                        size    = 58,
+                        size    = 64,
                         theme   = theme,
                         onClick = handleTap,
                     )
