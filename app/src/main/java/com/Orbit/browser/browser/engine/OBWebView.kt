@@ -354,8 +354,12 @@ class OBWebView @JvmOverloads constructor(
                         val width = this@OBWebView.width
                         val height = this@OBWebView.height
                         if (width > 0 && height > 0) {
-                            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                            val scale = (360f / width).coerceAtMost(1.0f)
+                            val thumbW = (width * scale).toInt().coerceAtLeast(1)
+                            val thumbH = (height * scale).toInt().coerceAtLeast(1)
+                            val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
                             val canvas = android.graphics.Canvas(bitmap)
+                            canvas.scale(scale, scale)
                             this@OBWebView.draw(canvas)
                             tabManager?.updateTab(tabId) { it.copy(thumbnail = bitmap) }
                         }

@@ -21,7 +21,19 @@ data class WeatherResult(
 class WeatherRepository @Inject constructor(
     private val okHttpClient: OkHttpClient
 ) {
+    private var cachedTimeMillis: Long = 0L
+    private var cachedLat: Double? = null
+    private var cachedLon: Double? = null
+    private var cachedResult: WeatherResult? = null
+
     suspend fun getWeather(lat: Double, lon: Double): WeatherResult? = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        if (cachedResult != null && (now - cachedTimeMillis < 10 * 60 * 1000L) &&
+            cachedLat != null && kotlin.math.abs(cachedLat!! - lat) < 0.05 &&
+            cachedLon != null && kotlin.math.abs(cachedLon!! - lon) < 0.05) {
+            return@withContext cachedResult
+        }
+
         try {
             val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true"
             val request = Request.Builder()
@@ -40,10 +52,15 @@ class WeatherRepository @Inject constructor(
             val code = currentWeather.optInt("weathercode", 0)
 
             val kind = mapWmoCodeToKind(code)
-            WeatherResult(temperature = temp, weatherCode = code, weatherKind = kind)
+            val result = WeatherResult(temperature = temp, weatherCode = code, weatherKind = kind)
+            cachedTimeMillis = now
+            cachedLat = lat
+            cachedLon = lon
+            cachedResult = result
+            result
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            cachedResult
         }
     }
 

@@ -47,7 +47,7 @@ class TabManager @Inject constructor() {
         tabs.find { it.id == id }
     }.stateIn(
         scope        = managerScope,
-        started      = SharingStarted.Eagerly,
+        started      = SharingStarted.WhileSubscribed(5000),
         initialValue = _tabs.value.firstOrNull(),
     )
 
@@ -55,7 +55,7 @@ class TabManager @Inject constructor() {
         list.count { !it.isPrivate }
     }.stateIn(
         scope        = managerScope,
-        started      = SharingStarted.Eagerly,
+        started      = SharingStarted.WhileSubscribed(5000),
         initialValue = 1,
     )
 
@@ -63,7 +63,7 @@ class TabManager @Inject constructor() {
         list.count { it.isPrivate }
     }.stateIn(
         scope        = managerScope,
-        started      = SharingStarted.Eagerly,
+        started      = SharingStarted.WhileSubscribed(5000),
         initialValue = 0,
     )
 
