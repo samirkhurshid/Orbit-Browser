@@ -552,8 +552,9 @@ private fun GlassTile(
             SubcomposeAsyncImage(
                 model              = faviconUrl,
                 contentDescription = null,
+                contentScale       = androidx.compose.ui.layout.ContentScale.Fit,
                 modifier           = Modifier
-                    .size(32.dp)
+                    .size(28.dp)
                     .clip(androidx.compose.foundation.shape.CircleShape),
                 error = {
                     Icon(
@@ -619,7 +620,7 @@ private fun QuickAccessCard(
                 letterSpacing = (-0.2).sp,
                 color      = if (theme.isDark) Color.White else Color(0xFF12122A),
             )
-            // "Edit" pill
+            // "Add" pill
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
@@ -637,7 +638,7 @@ private fun QuickAccessCard(
             }
         }
 
-        // 4-column icon grid (App.tsx lines 761–784)
+        // 4-column icon grid - vertical scrollable when multiple sites are added
         val displaySites: List<QASite> = if (sites.isEmpty()) {
             DEFAULT_QA
         } else {
@@ -645,7 +646,15 @@ private fun QuickAccessCard(
         }
 
         val rows = displaySites.chunked(4)
-        Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 14.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(start = 8.dp, end = 8.dp, bottom = 14.dp)
+                .run {
+                    if (rows.size > 2) {
+                        this.heightIn(max = 210.dp).verticalScroll(rememberScrollState())
+                    } else this
+                }
+        ) {
             rows.forEachIndexed { ri, row ->
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -899,20 +908,17 @@ private fun FrequentlyVisitedCard(
     sites: List<FrequentSite>,
     onSiteClick: (String) -> Unit,
 ) {
-    val a1     = theme.effectiveA1
-    val a2     = theme.effectiveA2
     val g      = theme.glass
     val isDark = theme.isDark
-    val displaySites = (sites.takeIf { it.isNotEmpty() } ?: FALLBACK_FREQUENT).take(8)
+    val displaySites = (sites.takeIf { it.isNotEmpty() } ?: FALLBACK_FREQUENT)
 
     FrostedCard(theme = theme) {
-        // Header
+        // Header without "See All" button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text       = "Frequently Visited",
@@ -920,23 +926,9 @@ private fun FrequentlyVisitedCard(
                 fontWeight = FontWeight.ExtraBold,
                 color      = if (isDark) Color.White else Color(0xFF12122A),
             )
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(a2.copy(alpha = 0.13f))
-                    .border(1.dp, a2.copy(alpha = 0.25f), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 10.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    text       = "See All",
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = a2,
-                )
-            }
         }
 
-        // Horizontal scroll row (App.tsx lines 841–862)
+        // Horizontal scroll row (icon size = 52, matching Quick Access!)
         LazyRow(
             contentPadding        = PaddingValues(horizontal = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -958,7 +950,7 @@ private fun FrequentlyVisitedCard(
                     GlassTile(
                         url     = site.url,
                         emoji   = emojiForUrl(site.url),
-                        size    = 64,
+                        size    = 52,
                         theme   = theme,
                         onClick = handleTap,
                     )
@@ -1129,11 +1121,21 @@ private fun AddQuickAccessDialog(
     val isDark = theme.isDark
     val g = theme.glass
     val a1 = theme.effectiveA1
+    val a2 = theme.effectiveA2
+
+    val quickSuggestions = listOf(
+        Pair("YouTube", "https://youtube.com"),
+        Pair("Google", "https://google.com"),
+        Pair("Reddit", "https://reddit.com"),
+        Pair("GitHub", "https://github.com"),
+        Pair("Amazon", "https://amazon.com"),
+        Pair("Instagram", "https://instagram.com")
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.6f))
+            .background(Color.Black.copy(alpha = 0.65f))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -1141,80 +1143,205 @@ private fun AddQuickAccessDialog(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Surface(
+        Box(
             modifier = Modifier
-                .width(320.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .border(1.dp, g.glassBorder2, RoundedCornerShape(24.dp))
+                .padding(horizontal = 24.dp)
+                .widthIn(max = 340.dp)
+                .frostedGlass(
+                    isDark = isDark,
+                    shape = RoundedCornerShape(32.dp),
+                    blurRadius = 36.dp,
+                    borderWidth = 1.dp
+                )
+                .background(
+                    if (isDark) Color(0xFF0C0F1D).copy(alpha = 0.88f)
+                    else Color(0xFFF8FAFC).copy(alpha = 0.90f),
+                    shape = RoundedCornerShape(32.dp)
+                )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) { },
-            color = if (isDark) Color(0xFF0F111E) else Color(0xFFFFFFFF),
+                ) { }
+                .padding(24.dp),
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // Header with glowing icon
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(a1.copy(alpha = 0.15f))
+                        .border(1.dp, a1.copy(alpha = 0.35f), androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AddLink,
+                        contentDescription = null,
+                        tint = a1,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
                 Text(
-                    text = "⚡ Add Quick Access",
-                    fontSize = 16.sp,
+                    text = "Add Shortcut",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
+                    letterSpacing = (-0.3).sp,
                     color = g.txColor
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "Save your favorite site for 1-tap quick access",
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = g.tx2Color,
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title (e.g. YouTube)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                // Quick suggestions chips
+                Text(
+                    text = "QUICK SUGGESTIONS",
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.6.sp,
+                    color = g.tx2Color.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.Start)
                 )
+                Spacer(Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    quickSuggestions.forEach { (sName, sUrl) ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.06f))
+                                .border(0.5.dp, g.glassBorder, RoundedCornerShape(20.dp))
+                                .clickable {
+                                    title = sName
+                                    url = sUrl
+                                }
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = sName,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = g.txColor
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Glass Title Input Field
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                        .border(1.dp, if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                ) {
+                    TextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        placeholder = { Text("Title (e.g. YouTube)", color = g.tx2Color.copy(alpha = 0.5f), fontSize = 13.sp) },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = g.txColor,
+                            unfocusedTextColor = g.txColor
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 Spacer(Modifier.height(10.dp))
 
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text("URL (e.g. youtube.com)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Glass URL Input Field
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                        .border(1.dp, if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                ) {
+                    TextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        placeholder = { Text("URL (e.g. youtube.com)", color = g.tx2Color.copy(alpha = 0.5f), fontSize = 13.sp) },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = g.txColor,
+                            unfocusedTextColor = g.txColor
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(22.dp))
 
+                // Action buttons: Cancel & Add
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    // Cancel
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(50))
-                            .background(g.glassBg2)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.06f))
+                            .border(1.dp, g.glassBorder, RoundedCornerShape(50.dp))
                             .clickable { onDismiss() }
-                            .padding(vertical = 11.dp),
+                            .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("Cancel", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = g.tx2Color)
+                        Text("Cancel", fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = g.tx2Color)
                     }
 
+                    // Add
+                    val canSave = url.isNotBlank()
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(50))
-                            .background(Brush.linearGradient(listOf(a1, theme.effectiveA2)))
-                            .clickable {
-                                if (url.isNotBlank()) {
-                                    onConfirm(title, url)
+                            .alpha(if (canSave) 1f else 0.4f)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(Brush.linearGradient(listOf(a1, a2)))
+                            .clickable(enabled = canSave) {
+                                if (canSave) {
+                                    val finalTitle = title.ifBlank { url.substringAfter("://").substringAfter("www.").substringBefore("/") }
+                                    onConfirm(finalTitle, url)
                                 }
                             }
-                            .padding(vertical = 11.dp),
+                            .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("Add", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("Add Shortcut", fontSize = 13.5.sp, fontWeight = FontWeight.Black, color = Color.White)
                     }
                 }
             }
