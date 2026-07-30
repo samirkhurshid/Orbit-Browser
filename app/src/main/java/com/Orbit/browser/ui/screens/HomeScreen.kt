@@ -490,7 +490,7 @@ private fun GlassTile(
     url: String,
     modifier: Modifier = Modifier,
     emoji: String? = null,
-    size: Int = 64,
+    size: Int = 52,
     theme: OBThemeConfig,
     isDashed: Boolean = false,
     onClick: () -> Unit = {},
@@ -513,35 +513,25 @@ private fun GlassTile(
         if (cleanDomain.isNotBlank()) "https://www.google.com/s2/favicons?domain=$cleanDomain&sz=128" else null
     }
 
+    val greyBgColor = if (isDashed) {
+        Color.Transparent
+    } else if (isDark) {
+        Color(0xFF1E2234).copy(alpha = 0.48f)
+    } else {
+        Color(0xFFE2E8F0).copy(alpha = 0.65f)
+    }
+
     Box(
         modifier = modifier
             .size(size.dp)
-            .frostedGlass(isDark = isDark, shape = RoundedCornerShape(20.dp), blurRadius = 32.dp)
-            .background(
-                if (isDashed) Color.Transparent
-                else if (isDark) Color.White.copy(alpha = 0.08f)
-                else Color.White.copy(alpha = 0.55f)
-            )
-            .then(
-                if (isDashed)
-                    Modifier.drawBehind {
-                        drawRoundRect(
-                            color        = a1.copy(alpha = 0.40f),
-                            style        = Stroke(
-                                width      = 1.5.dp.toPx(),
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 5.dp.toPx()), 0f),
-                            ),
-                            cornerRadius = CornerRadius(20.dp.toPx()),
-                        )
-                    }
-                else Modifier
-            )
+            .frostedGlass(isDark = isDark, shape = androidx.compose.foundation.shape.CircleShape, blurRadius = 24.dp)
+            .background(greyBgColor, shape = androidx.compose.foundation.shape.CircleShape)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = LocalIndication.current,
                 onClick           = onClick,
             )
-            .padding(4.dp),
+            .padding(3.dp),
         contentAlignment = Alignment.Center,
     ) {
         if (isDashed) {
@@ -549,28 +539,28 @@ private fun GlassTile(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add",
                 tint = theme.effectiveA1,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(22.dp)
             )
         } else if (faviconUrl == null) {
             Icon(
                 imageVector = Icons.Default.Public,
                 contentDescription = null,
                 tint = g.txColor,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(24.dp)
             )
         } else {
             SubcomposeAsyncImage(
                 model              = faviconUrl,
                 contentDescription = null,
                 modifier           = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .size(32.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape),
                 error = {
                     Icon(
                         imageVector = Icons.Default.Public,
                         contentDescription = null,
                         tint = g.txColor,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 },
                 loading = {
@@ -578,7 +568,7 @@ private fun GlassTile(
                         imageVector = Icons.Default.Public,
                         contentDescription = null,
                         tint = g.txColor,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 },
             )
@@ -679,7 +669,7 @@ private fun QuickAccessCard(
                         ) {
                             GlassTile(
                                 url      = site.url,
-                                size     = 58,
+                                size     = 52,
                                 theme    = theme,
                                 isDashed = site.url.isBlank(),
                                 onClick  = handleTap,
