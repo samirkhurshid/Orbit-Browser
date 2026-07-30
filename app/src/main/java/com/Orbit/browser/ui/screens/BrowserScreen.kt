@@ -279,6 +279,7 @@ fun PersistentWebViewStack(
                 is BrowserCommand.Refresh   -> activeWv?.reload()
                 is BrowserCommand.LoadUrl   -> {
                     if (command.clearHistory) {
+                        activeWv?.shouldClearHistoryOnNextLoad = true
                         activeWv?.clearHistory()
                     }
                     activeWv?.loadUrl(command.url)
