@@ -146,7 +146,14 @@ class OBDownloadService : Service() {
                 activeDownloadJobs[downloadId]?.cancel()
                 activeDownloadJobs.remove(downloadId)
                 val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                val notif = createPausedNotification(downloadId, "Download")
+                var filename = intent.getStringExtra(EXTRA_FILENAME) ?: ""
+                if (filename.isBlank()) {
+                    runBlocking {
+                        val dbDl = downloadDao.getDownloadById(downloadId)
+                        filename = dbDl?.filename ?: "Download"
+                    }
+                }
+                val notif = createPausedNotification(downloadId, filename)
                 notifManager.notify(NOTIF_ID_BASE + downloadId.toInt(), notif)
                 serviceScope.launch {
                     val dbDl = downloadDao.getDownloadById(downloadId)
@@ -370,18 +377,10 @@ class OBDownloadService : Service() {
         val etaStr = if (etaSec > 0) formatEta(etaSec) else "Downloading…"
         val percentStr = "$percent%"
 
-        val orbitLogo = try {
-            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
-        } catch (_: Exception) {
-            null
-        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setLargeIcon(orbitLogo)
-            .setContentTitle("Orbit Browser · $percentStr")
-            .setContentText("$filename · $etaStr")
-            .setSubText("Orbit Browser")
+            .setContentTitle(filename)
+            .setContentText("$percentStr · $etaStr")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setProgress(100, percent, totalBytes <= 0)
@@ -415,18 +414,10 @@ class OBDownloadService : Service() {
             this, (downloadId * 10 + 2).toInt(), cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val orbitLogo = try {
-            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
-        } catch (_: Exception) {
-            null
-        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_paused)
-            .setLargeIcon(orbitLogo)
-            .setContentTitle("Orbit Browser")
-            .setContentText("$filename · Paused")
-            .setSubText("Orbit Browser")
+            .setContentTitle(filename)
+            .setContentText("Paused")
             .setOngoing(false)
             .setContentIntent(contentPendingIntent)
             .addAction(android.R.drawable.stat_sys_download, "Resume", resumePendingIntent)
@@ -443,18 +434,10 @@ class OBDownloadService : Service() {
             this, downloadId.toInt(), openAppIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val orbitLogo = try {
-            android.graphics.BitmapFactory.decodeResource(resources, R.drawable.orbit_logo)
-        } catch (_: Exception) {
-            null
-        } ?: android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(if (isSuccess) android.R.drawable.stat_sys_download_done else android.R.drawable.stat_notify_error)
-            .setLargeIcon(orbitLogo)
-            .setContentTitle("Orbit Browser")
-            .setContentText("$filename · $message")
-            .setSubText("Orbit Browser")
+            .setContentTitle(filename)
+            .setContentText(if (isSuccess) "Download Completed" else message)
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)
             .build()
