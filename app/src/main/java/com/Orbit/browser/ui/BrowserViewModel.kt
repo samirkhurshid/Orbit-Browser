@@ -260,9 +260,9 @@ class BrowserViewModel @Inject constructor(
 
     fun goForward() {
         if (_ui.value.screen == BrowserScreen.Home) {
-            val activeUrl = tabManager.activeTab.value?.url ?: ""
-            if (activeUrl.isNotBlank() && activeUrl != "orbit://home") {
-                _ui.update { it.copy(screen = BrowserScreen.Browser) }
+            val lastUrl = tabManager.activeTab.value?.lastVisitedUrl ?: ""
+            if (lastUrl.isNotBlank() && lastUrl != "orbit://home") {
+                navigate(lastUrl)
                 return
             }
         }
@@ -477,13 +477,14 @@ class BrowserViewModel @Inject constructor(
         _ui.update { it.copy(screen = BrowserScreen.Browser, searchOpen = false) }
         tabManager.updateActiveTab { tab ->
             tab.copy(
-                url          = resolvedUrl,
-                searchQuery  = extractedQuery.ifBlank { tab.searchQuery },
-                displayUrl   = OBWebView.formatDisplayUrl(resolvedUrl, extractedQuery.ifBlank { tab.searchQuery }),
-                isLoading    = true,
-                loadProgress = 0.05f,
-                canGoBack    = if (shouldClearHistory) false else tab.canGoBack,
-                canGoForward = if (shouldClearHistory) false else tab.canGoForward,
+                url            = resolvedUrl,
+                lastVisitedUrl = resolvedUrl,
+                searchQuery    = extractedQuery.ifBlank { tab.searchQuery },
+                displayUrl     = OBWebView.formatDisplayUrl(resolvedUrl, extractedQuery.ifBlank { tab.searchQuery }),
+                isLoading      = true,
+                loadProgress   = 0.05f,
+                canGoBack      = if (shouldClearHistory) false else tab.canGoBack,
+                canGoForward   = if (shouldClearHistory) false else tab.canGoForward,
             )
         }
         _commands.tryEmit(BrowserCommand.LoadUrl(resolvedUrl, clearHistory = shouldClearHistory))

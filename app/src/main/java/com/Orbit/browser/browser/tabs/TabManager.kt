@@ -23,6 +23,7 @@ data class OBTab(
     val trackersBlocked: Int = 0,
     val groupName: String? = null,
     val groupColor: String? = null,
+    val lastVisitedUrl: String = "",
     val createdAt: Long  = System.currentTimeMillis(),
     val lastAccessedAt: Long = System.currentTimeMillis(),
 )
