@@ -121,6 +121,16 @@ class MainActivity : FragmentActivity() {
         } catch (_: Exception) {}
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.saveAppStateOnExit(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.saveAppStateOnExit(this)
+    }
+
     override fun onDestroy() {
         if (viewModel.ui.value.clearOnExit) {
             viewModel.clearHistory()

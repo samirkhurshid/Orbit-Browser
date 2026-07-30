@@ -300,13 +300,55 @@ class BrowserViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
-        restoreTabsFromPrefs(prefs.getSyncSavedTabsJson(), prefs.getSyncActiveTabId())
+        restoreTabsAndScreenFromPrefs()
         loadPreferences()
         observeTabsForPersistence()
+        observeScreenForPersistence()
         initAdBlocker()
         seedDefaultQuickAccess()
         fetchWeather()
         loadRealNews()
+    }
+
+    private fun observeScreenForPersistence() = viewModelScope.launch {
+        _ui.map { it.screen }.distinctUntilChanged().collect { screen ->
+            prefs.saveLastClosedScreen(screen.name)
+        }
+    }
+
+    fun saveAppStateOnExit(context: android.content.Context) {
+        viewModelScope.launch {
+            val currentScreen = _ui.value.screen
+            prefs.saveLastClosedScreen(currentScreen.name)
+
+            // If user exited browser on Home screen, ERASE previously opened site from active tab as specified by user!
+            if (currentScreen == BrowserScreen.Home) {
+                tabManager.updateActiveTab { tab ->
+                    tab.copy(
+                        url = "orbit://home",
+                        displayUrl = "",
+                        title = "Home",
+                        searchQuery = ""
+                    )
+                }
+            }
+
+            val normalTabs = tabManager.tabs.value.filter { !it.isPrivate }
+            if (normalTabs.isNotEmpty()) {
+                val jsonArray = org.json.JSONArray()
+                for (tab in normalTabs) {
+                    val obj = org.json.JSONObject().apply {
+                        put("id", tab.id)
+                        put("url", tab.url)
+                        put("displayUrl", tab.displayUrl)
+                        put("title", tab.title)
+                        put("searchQuery", tab.searchQuery)
+                    }
+                    jsonArray.put(obj)
+                }
+                prefs.saveTabsState(jsonArray.toString(), tabManager.activeTabId.value)
+            }
+        }
     }
 
     private fun observeTabsForPersistence() = viewModelScope.launch {
@@ -331,38 +373,76 @@ class BrowserViewModel @Inject constructor(
         }
     }
 
-    private fun restoreTabsFromPrefs(jsonStr: String?, activeId: String?) {
-        if (jsonStr.isNullOrBlank()) return
-        try {
-            val jsonArray = org.json.JSONArray(jsonStr)
-            val list = mutableListOf<com.orbit.browser.browser.tabs.OBTab>()
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                val id = obj.optString("id", java.util.UUID.randomUUID().toString())
-                val url = obj.optString("url", "")
-                val displayUrl = obj.optString("displayUrl", url)
-                val title = obj.optString("title", "New Tab")
-                val searchQuery = obj.optString("searchQuery", "")
-                if (url.isNotBlank()) {
-                    list.add(
-                        com.orbit.browser.browser.tabs.OBTab(
-                            id = id,
-                            url = url,
-                            displayUrl = displayUrl,
-                            title = title,
-                            searchQuery = searchQuery,
+    private fun restoreTabsAndScreenFromPrefs() {
+        val jsonStr = prefs.getSyncSavedTabsJson()
+        val activeId = prefs.getSyncActiveTabId()
+        if (!jsonStr.isNullOrBlank()) {
+            try {
+                val jsonArray = org.json.JSONArray(jsonStr)
+                val list = mutableListOf<com.orbit.browser.browser.tabs.OBTab>()
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val id = obj.optString("id", java.util.UUID.randomUUID().toString())
+                    val url = obj.optString("url", "")
+                    val displayUrl = obj.optString("displayUrl", url)
+                    val title = obj.optString("title", "New Tab")
+                    val searchQuery = obj.optString("searchQuery", "")
+                    if (url.isNotBlank()) {
+                        list.add(
+                            com.orbit.browser.browser.tabs.OBTab(
+                                id = id,
+                                url = url,
+                                displayUrl = displayUrl,
+                                title = title,
+                                searchQuery = searchQuery,
+                            )
                         )
+                    }
+                }
+                if (list.isNotEmpty()) {
+                    tabManager.restoreTabs(list, activeId)
+                }
+            } catch (_: Exception) {}
+        }
+
+        val lastScreenStr = prefs.getSyncLastClosedScreen()
+        val savedScreen = try {
+            if (!lastScreenStr.isNullOrBlank()) BrowserScreen.valueOf(lastScreenStr) else null
+        } catch (_: Exception) { null }
+
+        val activeTabObj = tabManager.activeTab.value
+
+        if (savedScreen != null) {
+            if (savedScreen == BrowserScreen.Home) {
+                // Closed on Home Screen: Erase site from active tab so it opens clean in Home state!
+                tabManager.updateActiveTab { tab ->
+                    tab.copy(
+                        url = "orbit://home",
+                        displayUrl = "",
+                        title = "Home",
+                        searchQuery = ""
                     )
                 }
-            }
-            if (list.isNotEmpty()) {
-                tabManager.restoreTabs(list, activeId)
-                val activeTabObj = list.find { it.id == activeId } ?: list.first()
-                if (activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home") {
+                _ui.update { it.copy(screen = BrowserScreen.Home) }
+                // Perform background refreshments for weather & news
+                fetchWeather()
+                loadRealNews()
+            } else if (savedScreen == BrowserScreen.Browser) {
+                if (activeTabObj != null && activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home") {
                     _ui.update { it.copy(screen = BrowserScreen.Browser) }
+                } else {
+                    _ui.update { it.copy(screen = BrowserScreen.Home) }
                 }
+            } else {
+                _ui.update { it.copy(screen = savedScreen) }
             }
-        } catch (_: Exception) {}
+        } else {
+            if (activeTabObj != null && activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home") {
+                _ui.update { it.copy(screen = BrowserScreen.Browser) }
+            } else {
+                _ui.update { it.copy(screen = BrowserScreen.Home) }
+            }
+        }
     }
 
     private fun loadPreferences() = viewModelScope.launch {

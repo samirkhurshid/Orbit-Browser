@@ -60,7 +60,10 @@ class OBPreferences @Inject constructor(
         val SAVED_WEATHER_CODE   = intPreferencesKey("saved_weather_code")
         val APP_LAUNCH_COUNT     = intPreferencesKey("app_launch_count")
         val HAS_DISMISSED_DEFAULT_BROWSER_PROMPT = booleanPreferencesKey("dismissed_default_browser")
+        val LAST_CLOSED_SCREEN   = stringPreferencesKey("last_closed_screen")
     }
+
+    val lastClosedScreen: Flow<String?> = store.data.map { it[LAST_CLOSED_SCREEN] ?: sharedPrefs.getString("last_closed_screen", null) }
 
     val theme: Flow<OBThemePreset> = store.data.map { prefs ->
         try { OBThemePreset.valueOf(prefs[THEME] ?: OBThemePreset.BlueFrost.name) }
@@ -101,6 +104,10 @@ class OBPreferences @Inject constructor(
             newCount = count
         }
         return newCount
+    }
+
+    fun getSyncLastClosedScreen(): String? {
+        return sharedPrefs.getString("last_closed_screen", null)
     }
 
     suspend fun setDismissedDefaultBrowserPrompt(v: Boolean) = set(HAS_DISMISSED_DEFAULT_BROWSER_PROMPT, v)
@@ -148,6 +155,11 @@ class OBPreferences @Inject constructor(
             it[SAVED_TABS_JSON] = tabsJson
             it[ACTIVE_TAB_ID]   = activeId
         }
+    }
+
+    suspend fun saveLastClosedScreen(screenName: String) {
+        sharedPrefs.edit().putString("last_closed_screen", screenName).commit()
+        set(LAST_CLOSED_SCREEN, screenName)
     }
 
     private suspend fun <T> set(key: Preferences.Key<T>, value: T) {
