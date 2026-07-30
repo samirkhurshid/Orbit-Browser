@@ -27,11 +27,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.orbit.browser.browser.tabs.OBTab
-import com.orbit.browser.browser.tabs.SecurityState
 import com.orbit.browser.ui.BrowserScreen
 import com.orbit.browser.ui.BrowserUiState
 import com.orbit.browser.ui.theme.LocalOBTheme
 import com.orbit.browser.ui.glass.frostedGlass
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 
 import com.orbit.browser.ui.TabMode
 
@@ -66,29 +71,54 @@ fun OBIslandNavBar(
     val a1      = theme.effectiveA1
     val a2      = theme.effectiveA2
 
+    var isCollapsed by remember { mutableStateOf(false) }
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    val backArrowRotation by animateFloatAsState(
+        targetValue   = if (isCollapsed) 90f else 0f,
+        animationSpec = spring(dampingRatio = 0.65f, stiffness = 400f),
+        label         = "back_arrow_rotation"
+    )
+
     // ── Animated island dimensions  (App.tsx transition 0.46s var(--spring)) ─
-    val targetWidth = when (islandState) {
+    val targetWidth = if (isCollapsed) 52.dp else when (islandState) {
         IslandState.TabsOpen -> 300.dp
         else                 -> 326.dp
     }
-    val targetHeight = when (islandState) {
+    val targetHeight = if (isCollapsed) 52.dp else when (islandState) {
         IslandState.TabsOpen -> 52.dp
         else                 -> 60.dp
     }
+    val targetRadius = if (isCollapsed) 50.dp else 36.dp
+
     val smoothEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
     val smoothDp = tween<androidx.compose.ui.unit.Dp>(durationMillis = 280, easing = smoothEasing)
 
     val animWidth  by animateDpAsState(targetWidth,  smoothDp,  label = "island_w")
     val animHeight by animateDpAsState(targetHeight, smoothDp,  label = "island_h")
-    val animRadius by animateDpAsState(36.dp,        smoothDp,  label = "island_r")
+    val animRadius by animateDpAsState(targetRadius, smoothDp,  label = "island_r")
 
     // ── Background: islandBg token ──────────────────────────────────────────
     val islandBg = g.islandBg   // dark: rgba(8,10,22,0.55)  light: rgba(255,255,255,0.42)
     val border   = g.glassBorder2
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
+        modifier = modifier
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .pointerInput(isCollapsed) {
+                detectDragGestures { change, dragAmount ->
+                    if (isCollapsed) {
+                        change.consume()
+                        offsetX += dragAmount.x
+                        offsetY += dragAmount.y
+                    } else if (dragAmount.y > 15f) {
+                        isCollapsed = true
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                }
+            },
+        contentAlignment = Alignment.CenterStart,
     ) {
         // ── Main island pill ────────────────────────────────────────────────
         Box(
@@ -101,184 +131,201 @@ fun OBIslandNavBar(
                     indication        = null,
                 ) {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onIslandClick()
+                    if (isCollapsed) {
+                        isCollapsed = false
+                        offsetX = 0f
+                        offsetY = 0f
+                    } else {
+                        onIslandClick()
+                    }
                 },
             contentAlignment = Alignment.Center,
         ) {
-            when (islandState) {
-                // ──────────────────────────────────────────────────────────
-                // TABS OPEN  → segmented normal/incognito switcher
-                // App.tsx lines 1549–1589
-                // ──────────────────────────────────────────────────────────
-                IslandState.TabsOpen -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp),
-                    ) {
-                        // Sliding indicator pill
-                        val indicatorOffset by animateDpAsState(
-                            targetValue   = if (tabMode == TabMode.Private) (animWidth / 2 - 8.dp) else 0.dp,
-                            animationSpec = tween(280, easing = smoothEasing),
-                            label         = "tab_indicator",
-                        )
+            if (isCollapsed) {
+                // Collapsed state: Shows only the upward-pointing rotated back arrow!
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(rotationZ = backArrowRotation),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ChevronLeftIcon(color = g.txColor)
+                }
+            } else {
+                when (islandState) {
+                    // ──────────────────────────────────────────────────────────
+                    // TABS OPEN  → segmented normal/incognito switcher
+                    // App.tsx lines 1549–1589
+                    // ──────────────────────────────────────────────────────────
+                    IslandState.TabsOpen -> {
                         Box(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(0.5f)
-                                .offset(x = indicatorOffset)
-                                .clip(RoundedCornerShape(50.dp))
-                                .background(
-                                    when {
-                                        tabMode == TabMode.Private ->
-                                            Color(0xFFC084FC).copy(alpha = 0.22f)
-                                        isDark ->
-                                            Color.White.copy(alpha = 0.14f)
-                                        else ->
-                                            Color.White.copy(alpha = 0.88f)
-                                    }
-                                )
-                                .border(
-                                    1.dp,
-                                    when {
-                                        tabMode == TabMode.Private -> Color(0xFFC084FC).copy(alpha = 0.30f)
-                                        isDark -> Color.White.copy(alpha = 0.18f)
-                                        else   -> Color.White.copy(alpha = 0.95f)
-                                    },
-                                    RoundedCornerShape(50.dp),
-                                ),
-                        )
+                                .fillMaxSize()
+                                .padding(4.dp),
+                        ) {
+                            // Sliding indicator pill
+                            val indicatorOffset by animateDpAsState(
+                                targetValue   = if (tabMode == TabMode.Private) (animWidth / 2 - 8.dp) else 0.dp,
+                                animationSpec = tween(280, easing = smoothEasing),
+                                label         = "tab_indicator",
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(0.5f)
+                                    .offset(x = indicatorOffset)
+                                    .clip(RoundedCornerShape(50.dp))
+                                    .background(
+                                        when {
+                                            tabMode == TabMode.Private ->
+                                                Color(0xFFC084FC).copy(alpha = 0.22f)
+                                            isDark ->
+                                                Color.White.copy(alpha = 0.14f)
+                                            else ->
+                                                Color.White.copy(alpha = 0.88f)
+                                        }
+                                    )
+                                    .border(
+                                        1.dp,
+                                        when {
+                                            tabMode == TabMode.Private -> Color(0xFFC084FC).copy(alpha = 0.30f)
+                                            isDark -> Color.White.copy(alpha = 0.18f)
+                                            else   -> Color.White.copy(alpha = 0.95f)
+                                        },
+                                        RoundedCornerShape(50.dp),
+                                    ),
+                            )
 
-                        // Normal / Incognito buttons
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            listOf(TabMode.Normal, TabMode.Private).forEach { mode ->
-                                val isActive = tabMode == mode
-                                val textColor by animateColorAsState(
-                                    targetValue = when {
-                                        isActive && mode == TabMode.Private -> Color(0xFFC084FC)
-                                        isActive -> g.txColor
-                                        else     -> g.tx3Color
-                                    },
-                                    label = "tab_color_${mode.name}",
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication        = null,
-                                            onClick           = { onTabModeChanged(mode) },
-                                        ),
-                                    verticalAlignment     = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    if (mode == TabMode.Normal) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(17.dp)
-                                                .border(2.dp, textColor, RoundedCornerShape(5.dp)),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
+                            // Normal / Incognito buttons
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                listOf(TabMode.Normal, TabMode.Private).forEach { mode ->
+                                    val isActive = tabMode == mode
+                                    val textColor by animateColorAsState(
+                                        targetValue = when {
+                                            isActive && mode == TabMode.Private -> Color(0xFFC084FC)
+                                            isActive -> g.txColor
+                                            else     -> g.tx3Color
+                                        },
+                                        label = "tab_color_${mode.name}",
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication        = null,
+                                                onClick           = { onTabModeChanged(mode) },
+                                            ),
+                                        verticalAlignment     = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        if (mode == TabMode.Normal) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(17.dp)
+                                                    .border(2.dp, textColor, RoundedCornerShape(5.dp)),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text(
+                                                    text       = "$tabCount",
+                                                    fontSize   = 10.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color      = textColor,
+                                                )
+                                            }
+                                            Spacer(Modifier.width(6.dp))
                                             Text(
-                                                text       = "$tabCount",
-                                                fontSize   = 10.sp,
-                                                fontWeight = FontWeight.Black,
+                                                text       = "Tabs",
+                                                fontSize   = 13.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                letterSpacing = (-0.2).sp,
+                                                color      = textColor,
+                                            )
+                                        } else {
+                                            // Shield SVG for incognito
+                                            ShieldIcon(color = textColor, size = 14.dp)
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(
+                                                text       = "Incognito",
+                                                fontSize   = 13.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                letterSpacing = (-0.2).sp,
                                                 color      = textColor,
                                             )
                                         }
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(
-                                            text       = "Tabs",
-                                            fontSize   = 13.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            letterSpacing = (-0.2).sp,
-                                            color      = textColor,
-                                        )
-                                    } else {
-                                        // Shield SVG for incognito
-                                        ShieldIcon(color = textColor, size = 14.dp)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(
-                                            text       = "Incognito",
-                                            fontSize   = 13.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            letterSpacing = (-0.2).sp,
-                                            color      = textColor,
-                                        )
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // ──────────────────────────────────────────────────────────
-                // DEFAULT & ADDRESS  → 5 nav buttons
-                // App.tsx lines 1591–1622
-                // ──────────────────────────────────────────────────────────
-                else -> {
-                    val isHome        = uiState.screen == BrowserScreen.Home
-                    val hasActivePage = activeTab?.url?.isNotBlank() == true && activeTab?.url != "orbit://home"
-                    val canGoBack     = if (isHome) false else ((activeTab?.canGoBack == true) || hasActivePage)
-                    val canGoForward  = if (isHome) hasActivePage else (activeTab?.canGoForward == true)
+                    // ──────────────────────────────────────────────────────────
+                    // DEFAULT & ADDRESS  → 5 nav buttons
+                    // App.tsx lines 1591–1622
+                    // ──────────────────────────────────────────────────────────
+                    else -> {
+                        val isHome        = uiState.screen == BrowserScreen.Home
+                        val hasActivePage = activeTab?.url?.isNotBlank() == true && activeTab?.url != "orbit://home"
+                        val canGoBack     = if (isHome) false else ((activeTab?.canGoBack == true) || hasActivePage)
+                        val canGoForward  = if (isHome) hasActivePage else (activeTab?.canGoForward == true)
 
-                    Row(
-                        modifier              = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 4.dp),
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround,
-                    ) {
-                        // Back — chevron left SVG
-                        NavButton(
-                            color    = if (canGoBack) g.txColor else g.txColor.copy(alpha = 0.32f),
-                            modifier = Modifier.weight(1f),
-                            onClick  = onBack,
+                        Row(
+                            modifier              = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 4.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround,
                         ) {
-                            ChevronLeftIcon(color = if (canGoBack) g.txColor else g.txColor.copy(alpha = 0.32f))
-                        }
+                            // Back — chevron left SVG
+                            NavButton(
+                                color    = if (canGoBack) g.txColor else g.txColor.copy(alpha = 0.32f),
+                                modifier = Modifier.weight(1f),
+                                onClick  = onBack,
+                            ) {
+                                ChevronLeftIcon(color = if (canGoBack) g.txColor else g.txColor.copy(alpha = 0.32f))
+                            }
 
-                        // Forward — chevron right SVG
-                        NavButton(
-                            color    = if (canGoForward) g.txColor else g.txColor.copy(alpha = 0.32f),
-                            modifier = Modifier.weight(1f),
-                            onClick  = onForward,
-                        ) {
-                            ChevronRightIcon(color = if (canGoForward) g.txColor else g.txColor.copy(alpha = 0.32f))
-                        }
+                            // Forward — chevron right SVG
+                            NavButton(
+                                color    = if (canGoForward) g.txColor else g.txColor.copy(alpha = 0.32f),
+                                modifier = Modifier.weight(1f),
+                                onClick  = onForward,
+                            ) {
+                                ChevronRightIcon(color = if (canGoForward) g.txColor else g.txColor.copy(alpha = 0.32f))
+                            }
 
-                        // Home — solid house SVG path (App.tsx line 1603–1605)
-                        NavButton(
-                            color    = if (isHome) a1 else g.txColor,
-                            modifier = Modifier.weight(1f),
-                            onClick  = onHome,
-                        ) {
-                            HomeIcon(color = if (isHome) a1 else g.txColor)
-                        }
+                            // Home — solid house SVG path (App.tsx line 1603–1605)
+                            NavButton(
+                                color    = if (isHome) a1 else g.txColor,
+                                modifier = Modifier.weight(1f),
+                                onClick  = onHome,
+                            ) {
+                                HomeIcon(color = if (isHome) a1 else g.txColor)
+                            }
 
-                        // Tabs — rounded rect + count text (App.tsx line 1609–1612)
-                        NavButton(
-                            color    = g.txColor,
-                            modifier = Modifier.weight(1f),
-                            onClick  = onTabs,
-                        ) {
-                            TabsIcon(tabCount = tabCount, color = g.txColor)
-                        }
+                            // Tabs — rounded rect + count text (App.tsx line 1609–1612)
+                            NavButton(
+                                color    = g.txColor,
+                                modifier = Modifier.weight(1f),
+                                onClick  = onTabs,
+                            ) {
+                                TabsIcon(tabCount = tabCount, color = g.txColor)
+                            }
 
-                        // Menu — 3 dots (App.tsx line 1615–1621)
-                        NavButton(
-                            color    = g.txColor,
-                            modifier = Modifier.weight(1f),
-                            onClick  = onMenu,
-                        ) {
-                            DotsMenuIcon(color = g.txColor)
+                            // Menu — 3 dots (App.tsx line 1615–1621)
+                            NavButton(
+                                color    = g.txColor,
+                                modifier = Modifier.weight(1f),
+                                onClick  = onMenu,
+                            ) {
+                                DotsMenuIcon(color = g.txColor)
+                            }
                         }
                     }
                 }
             }
         }
-
     }
 }
 
