@@ -484,6 +484,12 @@ private fun TabCard(
         } else null
     }
 
+    val cardBackground = if (isActive) {
+        Brush.linearGradient(listOf(a1, theme.effectiveA2))
+    } else {
+        androidx.compose.ui.graphics.SolidColor(if (isDark) Color(0xFF101322) else Color(0xFFE2E8F5))
+    }
+
     val scope = rememberCoroutineScope()
     var offsetX by remember { mutableStateOf(0f) }
     var isDismissed by remember { mutableStateOf(false) }
@@ -504,7 +510,7 @@ private fun TabCard(
     val activeBezelBorder = if (isActive) {
         Modifier.border(
             width = 2.5.dp,
-            brush = Brush.linearGradient(listOf(a1, theme.effectiveA2)),
+            color = Color.White.copy(alpha = 0.5f),
             shape = RoundedCornerShape(22.dp)
         )
     } else {
@@ -541,7 +547,7 @@ private fun TabCard(
                 )
             }
             .clip(RoundedCornerShape(22.dp))
-            .background(if (isDark) Color(0xFF101322) else Color(0xFFE2E8F5))
+            .background(cardBackground)
             .then(activeBezelBorder)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -562,7 +568,7 @@ private fun TabCard(
                 // Favicon / Home Icon
                 if (isHomeTab) {
                     HomeSvgIcon(
-                        color = if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1),
+                        color = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)),
                         size  = 16.dp,
                     )
                 } else if (tab.favicon != null) {
@@ -578,13 +584,13 @@ private fun TabCard(
                         modifier = Modifier
                             .size(18.dp)
                             .clip(RoundedCornerShape(5.dp))
-                            .background(if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.3f) else Color.Gray.copy(alpha = 0.3f)),
+                            .background((if (isActive) Color.White else if (tab.isPrivate) Color(0xFFC084FC) else Color.Gray).copy(alpha = 0.3f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = if (tab.isPrivate) Icons.Default.Security else Icons.Default.Public,
                             contentDescription = null,
-                            tint = if (tab.isPrivate) Color(0xFFC084FC) else g.txColor,
+                            tint = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
                             modifier = Modifier.size(12.dp)
                         )
                     }
@@ -599,7 +605,7 @@ private fun TabCard(
                     fontWeight = FontWeight.Bold,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis,
-                    color      = if (tab.isPrivate) Color(0xFFC084FC) else g.txColor,
+                    color      = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
                     modifier   = Modifier.weight(1f),
                 )
 
