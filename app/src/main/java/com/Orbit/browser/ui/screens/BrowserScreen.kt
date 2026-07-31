@@ -295,15 +295,22 @@ fun PersistentWebViewStack(
 
     Box(modifier = modifier.fillMaxSize()) {
         tabs.forEach { tab ->
-            val isCurrentTabActive = tab.id == activeTabId && isBrowserActive && tab.url.isNotBlank()
+            val isCurrentTabActive = tab.id == activeTabId && tab.url.isNotBlank()
+            val isTabManagerOpen = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
+
             key(tab.id) {
                 val tabOffsetX by animateFloatAsState(
                     targetValue = if (isCurrentTabActive) 0f else if (ui.screen == com.orbit.browser.ui.BrowserScreen.Home) 1000f else -1000f,
-                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f),
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
                     label = "tab_offset_x"
                 )
+                val webViewScale by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive && isTabManagerOpen) 0.88f else 1f,
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
+                    label = "webview_scale"
+                )
                 val tabAlpha by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive) 1f else 0f,
+                    targetValue = if (isCurrentTabActive) (if (isTabManagerOpen) 0.85f else 1f) else 0f,
                     animationSpec = tween(180),
                     label = "tab_alpha"
                 )
@@ -314,7 +321,9 @@ fun PersistentWebViewStack(
                         .statusBarsPadding()
                         .graphicsLayer {
                             translationX = tabOffsetX
-                            alpha = tabAlpha
+                            scaleX       = webViewScale
+                            scaleY       = webViewScale
+                            alpha        = tabAlpha
                         }
                         .run {
                             if (!isCurrentTabActive && tabAlpha == 0f) {

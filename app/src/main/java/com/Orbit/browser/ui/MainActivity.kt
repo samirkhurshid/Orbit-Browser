@@ -216,21 +216,21 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                         fadeIn(tween(180, easing = iosCurve)) togetherWith
                         (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(260, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.TabSwitcher) {
-                        // Open Tab Manager: Physics shrink-to-grid transition (380ms, dampingRatio 0.82, stiffness 320)
+                        // Open Tab Manager: Physics scale in place (NO horizontal slide)
                         val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
-                        (scaleIn(initialScale = 0.90f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
-                        (scaleOut(targetScale = 0.92f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
+                        (scaleIn(initialScale = 0.94f, animationSpec = openSpringFloat) + fadeIn(tween(200, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 0.94f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.TabSwitcher) {
-                        // Select Tab: Physics expand-from-grid transition
+                        // Select Tab: Physics scale expand from grid (NO horizontal slide)
                         val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
-                        (scaleIn(initialScale = 0.92f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
-                        (scaleOut(targetScale = 0.90f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
-                    } else if (targetState == BrowserScreen.Browser) {
-                        // Open new site or click Next button: Slide in Right to Left (iOS style steady & gradual)
+                        (scaleIn(initialScale = 0.94f, animationSpec = openSpringFloat) + fadeIn(tween(200, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 0.94f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
+                    } else if (initialState == BrowserScreen.Home && targetState == BrowserScreen.Browser) {
+                        // Open site from Home screen ONLY: Slide in Right to Left
                         (slideInHorizontally(initialOffsetX = { it }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
                         (slideOutHorizontally(targetOffsetX = { -it / 3 }, animationSpec = iosSpringInt) + fadeOut(tween(180, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.Browser && targetState == BrowserScreen.Home) {
-                        // Perform Back gesture/button to Home: Slide out Right until disappear (iOS style steady & gradual)
+                        // Close site back to Home screen: Slide out Left to Right (Reverse of opening animation)
                         (slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
                         (slideOutHorizontally(targetOffsetX = { it }, animationSpec = iosSpringInt) + fadeOut(tween(180, easing = iosCurve)))
                     } else {
