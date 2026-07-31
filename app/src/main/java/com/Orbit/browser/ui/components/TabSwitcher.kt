@@ -6,6 +6,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.*
@@ -344,13 +345,16 @@ private fun TabSwitcherContent(
                         baseTabs.filter { it.groupName == selectedGroupFilter }
                     } else baseTabs
                 }
+                val gridArrangement = remember(gridTabs.size) {
+                    if (gridTabs.size <= 2) Arrangement.Center else Arrangement.spacedBy(14.dp)
+                }
 
                 LazyVerticalGrid(
                     columns               = GridCells.Fixed(2),
                     modifier              = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 18.dp),
-                    verticalArrangement   = Arrangement.spacedBy(14.dp),
+                    verticalArrangement   = gridArrangement,
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     contentPadding        = PaddingValues(top = 8.dp, bottom = 120.dp),
                 ) {
@@ -443,6 +447,7 @@ private fun HomeSvgIcon(color: Color, size: androidx.compose.ui.unit.Dp = 18.dp)
             cubicTo(9 * sx, 15.3f * sy, 10.3f * sx, 14 * sy, 12 * sx, 14 * sy)
             cubicTo(13.7f * sx, 14 * sy, 15 * sx, 15.3f * sy, 15 * sx, 17 * sy)
             lineTo(15 * sx, 22 * sy)
+            lineTo(15 * sx, 22 * sy)
             lineTo(19 * sx, 22 * sy)
             cubicTo(20.1f * sx, 22 * sy, 21 * sx, 21.1f * sy, 21 * sx, 20 * sy)
             lineTo(21 * sx, 11.5f * sy)
@@ -456,6 +461,10 @@ private fun HomeSvgIcon(color: Color, size: androidx.compose.ui.unit.Dp = 18.dp)
         drawPath(path = p, color = color, style = androidx.compose.ui.graphics.drawscope.Fill)
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PREMIUM TAB CARD (Miniature Live Browser Window)
+// ═══════════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -498,13 +507,6 @@ private fun TabCard(
         } else null
     }
 
-    val cardBackground = if (isActive) {
-        Brush.linearGradient(listOf(a1, theme.effectiveA2))
-    } else {
-        androidx.compose.ui.graphics.SolidColor(if (isDark) Color(0xFF101322) else Color(0xFFE2E8F5))
-    }
-
-    val scope = rememberCoroutineScope()
     var offsetX by remember { mutableStateOf(0f) }
     var isDismissed by remember { mutableStateOf(false) }
 
@@ -521,14 +523,24 @@ private fun TabCard(
 
     val cardAlpha = (cardEntryAlpha * (1f - (kotlin.math.abs(animatedOffsetX) / 450f))).coerceIn(0f, 1f)
 
-    val activeBezelBorder = if (isActive) {
-        Modifier
+    val cardBezelBorder = if (isActive) {
+        Modifier.border(
+            width = 2.dp,
+            brush = Brush.linearGradient(listOf(a1, theme.effectiveA2)),
+            shape = RoundedCornerShape(22.dp)
+        )
     } else {
         Modifier.border(
             width = 1.dp,
-            color = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.08f),
+            color = if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f),
             shape = RoundedCornerShape(22.dp)
         )
+    }
+
+    val baseCardBg = if (isActive) {
+        if (isDark) Color(0xFF14172B) else Color(0xFFF0F4FC)
+    } else {
+        if (isDark) Color(0xFF0F1122) else Color(0xFFE8EEF8)
     }
 
     Box(
@@ -539,6 +551,7 @@ private fun TabCard(
             .graphicsLayer {
                 translationX = animatedOffsetX
                 alpha        = cardAlpha
+                shadowElevation = if (isActive) 12f else 4f
             }
             .pointerInput(tab.id) {
                 detectHorizontalDragGestures(
@@ -557,8 +570,8 @@ private fun TabCard(
                 )
             }
             .clip(RoundedCornerShape(22.dp))
-            .background(cardBackground)
-            .then(activeBezelBorder)
+            .background(baseCardBg)
+            .then(cardBezelBorder)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null,
@@ -570,13 +583,14 @@ private fun TabCard(
             ),
     ) {
         Column(modifier = Modifier.padding(top = 6.dp, bottom = 4.dp, start = 4.dp, end = 4.dp)) {
+            // Header Bar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier          = Modifier.padding(bottom = 6.dp, start = 4.dp, end = 4.dp),
+                modifier          = Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp),
             ) {
                 if (isHomeTab) {
                     HomeSvgIcon(
-                        color = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)),
+                        color = if (isActive) a1 else (if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)),
                         size  = 16.dp,
                     )
                 } else if (tab.favicon != null) {
@@ -592,13 +606,13 @@ private fun TabCard(
                         modifier = Modifier
                             .size(18.dp)
                             .clip(RoundedCornerShape(5.dp))
-                            .background((if (isActive) Color.White else if (tab.isPrivate) Color(0xFFC084FC) else Color.Gray).copy(alpha = 0.3f)),
+                            .background((if (isActive) a1 else if (tab.isPrivate) Color(0xFFC084FC) else Color.Gray).copy(alpha = 0.3f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = if (tab.isPrivate) Icons.Default.Security else Icons.Default.Public,
                             contentDescription = null,
-                            tint = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
+                            tint = if (isActive) a1 else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
                             modifier = Modifier.size(12.dp)
                         )
                     }
@@ -612,7 +626,7 @@ private fun TabCard(
                     fontWeight = FontWeight.Bold,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis,
-                    color      = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
+                    color      = if (isActive) a1 else (if (tab.isPrivate) Color(0xFFC084FC) else g.txColor),
                     modifier   = Modifier.weight(1f),
                 )
 
@@ -634,6 +648,7 @@ private fun TabCard(
                 }
             }
 
+            // Inner Viewport Preview Area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -714,7 +729,7 @@ private fun TabCard(
                     }
                 }
 
-                // Group Badge Overlay on card
+                // Group Badge Overlay
                 if (!tab.groupName.isNullOrBlank() && groupColor != null) {
                     Box(
                         modifier = Modifier
@@ -741,7 +756,7 @@ private fun TabCard(
                 modifier = Modifier
                     .padding(10.dp)
                     .align(Alignment.BottomEnd)
-                    .size(9.dp)
+                    .size(10.dp)
                     .clip(CircleShape)
                     .background(groupColor ?: Color(0xFF00DDA0)),
             )
@@ -750,7 +765,7 @@ private fun TabCard(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TALLER NEW TAB CARDS (Matching Reference Screenshot Dashed Style)
+// PREMIUM NEW TAB CARDS
 // ═══════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -758,9 +773,20 @@ private fun NewTabCard(onClick: () -> Unit) {
     val theme  = LocalOBTheme.current
     val g      = theme.glass
     val isDark = theme.isDark
+    val a1     = theme.effectiveA1
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f),
+        label = "new_tab_scale",
+    )
 
     Box(
         modifier = Modifier
+            .scale(scale)
             .fillMaxWidth()
             .height(260.dp)
             .clip(RoundedCornerShape(22.dp))
@@ -771,7 +797,7 @@ private fun NewTabCard(onClick: () -> Unit) {
                 shape = RoundedCornerShape(22.dp),
             )
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication        = null,
                 onClick           = onClick,
             ),
@@ -780,15 +806,21 @@ private fun NewTabCard(onClick: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.06f)),
+                    .background(a1.copy(alpha = 0.12f))
+                    .border(1.dp, a1.copy(alpha = 0.25f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", fontSize = 24.sp, color = g.txColor, fontWeight = FontWeight.Normal)
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = a1,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            Spacer(Modifier.height(10.dp))
-            Text("New Tab", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = g.txColor)
+            Spacer(Modifier.height(12.dp))
+            Text("New Tab", fontSize = 13.5.sp, fontWeight = FontWeight.ExtraBold, color = g.txColor)
         }
     }
 }
@@ -796,15 +828,25 @@ private fun NewTabCard(onClick: () -> Unit) {
 @Composable
 private fun NewPrivateTabCard(onClick: () -> Unit) {
     val violet = Color(0xFFC084FC)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f),
+        label = "new_priv_tab_scale",
+    )
+
     Box(
         modifier = Modifier
+            .scale(scale)
             .fillMaxWidth()
             .height(260.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(Color(0xFF501478).copy(alpha = 0.18f))
             .border(1.5.dp, violet.copy(alpha = 0.30f), RoundedCornerShape(22.dp))
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication        = null,
                 onClick           = onClick,
             ),
@@ -813,15 +855,21 @@ private fun NewPrivateTabCard(onClick: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF7828B4).copy(alpha = 0.22f)),
+                    .background(violet.copy(alpha = 0.18f))
+                    .border(1.dp, violet.copy(alpha = 0.35f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", fontSize = 24.sp, color = violet, fontWeight = FontWeight.Normal)
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = violet,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            Spacer(Modifier.height(10.dp))
-            Text("New Incognito", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = violet)
+            Spacer(Modifier.height(12.dp))
+            Text("New Incognito Tab", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = violet)
         }
     }
 }

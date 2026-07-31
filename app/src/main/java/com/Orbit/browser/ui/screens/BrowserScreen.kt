@@ -292,6 +292,18 @@ fun PersistentWebViewStack(
         tabs.indexOfFirst { it.id == activeTabId }.coerceAtLeast(0)
     }
 
+    val screenHeightDp = configuration.screenHeightDp.dp
+    val gridTabsCount = remember(tabs, ui.tabMode) {
+        val base = if (ui.tabMode == com.orbit.browser.ui.TabMode.Private) tabs.filter { it.isPrivate } else tabs.filter { !it.isPrivate }
+        base.size + 1
+    }
+
+    val isCenteredGrid = gridTabsCount <= 2
+    val verticalCenterOffset = if (isCenteredGrid) {
+        val availableHeight = screenHeightDp - with(density) { statusBarTopPx.toDp() } - 56.dp - 120.dp
+        ((availableHeight - 260.dp) / 2f).coerceAtLeast(0.dp)
+    } else 0.dp
+
     val col = activeIndex % 2
     val row = activeIndex / 2
 
@@ -299,7 +311,7 @@ fun PersistentWebViewStack(
     val innerCardHeightDp = 218.dp
 
     val calcTargetXDp = 18.dp + (col * (cardWidthDp.value + 14)).dp
-    val calcTargetYDp = with(density) { statusBarTopPx.toDp() } + 56.dp + 8.dp + 34.dp + (row * (260 + 14)).dp
+    val calcTargetYDp = with(density) { statusBarTopPx.toDp() } + 56.dp + 8.dp + 34.dp + verticalCenterOffset + (row * (260 + 14)).dp
 
     val gridTargetXPx = with(density) { calcTargetXDp.toPx() }
     val gridTargetYPx = with(density) { calcTargetYDp.toPx() }
