@@ -285,6 +285,25 @@ fun PersistentWebViewStack(
     val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
     val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
 
+    val statusBarTopPx = WindowInsets.statusBars.getTop(density).toFloat()
+    val screenWidthDp = configuration.screenWidthDp.dp
+
+    val activeIndex = remember(tabs, activeTabId) {
+        tabs.indexOfFirst { it.id == activeTabId }.coerceAtLeast(0)
+    }
+
+    val col = activeIndex % 2
+    val row = activeIndex / 2
+
+    val cardWidthDp = (screenWidthDp - 50.dp) / 2f
+    val innerCardHeightDp = 218.dp
+
+    val calcTargetXDp = 18.dp + (col * (cardWidthDp.value + 14)).dp
+    val calcTargetYDp = with(density) { statusBarTopPx.toDp() } + 56.dp + 8.dp + 34.dp + (row * (260 + 14)).dp
+
+    val gridTargetXPx = with(density) { calcTargetXDp.toPx() }
+    val gridTargetYPx = with(density) { calcTargetYDp.toPx() }
+
     Box(modifier = modifier.fillMaxSize()) {
         tabs.forEach { tab ->
             val isCurrentTabActive = tab.id == activeTabId
@@ -292,16 +311,16 @@ fun PersistentWebViewStack(
             val isTabSwitcherActive = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
 
             key(tab.id) {
-                val scaleRatio = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0 && screenWidthPx > 0) {
-                    (activeCardBounds!!.width / screenWidthPx).coerceIn(0.2f, 1.0f)
+                val scaleRatio = if (isCurrentTabActive && isTabSwitcherActive && screenWidthPx > 0) {
+                    (cardWidthDp / screenWidthDp).coerceIn(0.2f, 1.0f)
                 } else if (isTabSwitcherActive) 0.46f else 1.0f
 
-                val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0) {
-                    activeCardBounds!!.x
+                val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive) {
+                    gridTargetXPx
                 } else 0f
 
-                val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
-                    activeCardBounds!!.y
+                val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive) {
+                    gridTargetYPx
                 } else 0f
 
                 val offXInPx = with(density) { 1000.dp.toPx() }
@@ -344,10 +363,6 @@ fun PersistentWebViewStack(
                     label = "tab_alpha"
                 )
 
-                val activeCardHeightDp = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
-                    with(density) { (activeCardBounds!!.height / scaleRatio).toDp() }
-                } else androidx.compose.ui.unit.Dp.Unspecified
-
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -363,8 +378,8 @@ fun PersistentWebViewStack(
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }
                         .run {
-                            if (activeCardHeightDp != androidx.compose.ui.unit.Dp.Unspecified) {
-                                this.height(activeCardHeightDp)
+                            if (isCurrentTabActive && isTabSwitcherActive) {
+                                this.height(innerCardHeightDp / scaleRatio)
                             } else this
                         }
                         .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
