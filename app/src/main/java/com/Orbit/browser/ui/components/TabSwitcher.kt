@@ -6,7 +6,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.*
@@ -14,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -317,19 +317,17 @@ private fun TabSwitcherContent(
                 Spacer(Modifier.height(6.dp))
             }
 
-            // Grid sliding transition (Requirement #5: Parallel spaces sliding transition)
-            val incognitoSlideSpring = spring<IntOffset>(dampingRatio = 0.85f, stiffness = 320f)
+            // Grid sliding transition
+            val tabGridEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
             AnimatedContent(
                 targetState = tabMode,
                 transitionSpec = {
                     if (targetState == TabMode.Private) {
-                        // Normal interface slides out to the right (+it), Incognito enters from the left (-it)
-                        (slideInHorizontally(initialOffsetX = { -it }, animationSpec = incognitoSlideSpring) + fadeIn(tween(350))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = incognitoSlideSpring) + fadeOut(tween(300)))
+                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeIn(tween(200))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeOut(tween(200)))
                     } else {
-                        // Incognito interface slides out to the left (-it), Normal enters from the right (+it)
-                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = incognitoSlideSpring) + fadeIn(tween(350))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { -it }, animationSpec = incognitoSlideSpring) + fadeOut(tween(300)))
+                        (slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeIn(tween(200))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeOut(tween(200)))
                     }
                 },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -351,22 +349,15 @@ private fun TabSwitcherContent(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     contentPadding        = PaddingValues(top = 8.dp, bottom = 120.dp),
                 ) {
-                    items(gridTabs, key = { it.id }) { tab ->
-                        Box(
-                            modifier = Modifier.animateItem(
-                                fadeInSpec    = tween(350, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)),
-                                placementSpec = spring(dampingRatio = 0.82f, stiffness = 380f),
-                                fadeOutSpec   = tween(280, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)),
-                            )
-                        ) {
-                            TabCard(
-                                tab      = tab,
-                                isActive = tab.id == activeTabId,
-                                onClick  = { onSelectTab(tab.id) },
-                                onClose  = { onCloseTab(tab.id) },
-                                onLongClick = { tabToAssignGroup = tab },
-                            )
-                        }
+                    itemsIndexed(gridTabs, key = { _, tab -> tab.id }) { index, tab ->
+                        TabCard(
+                            tab      = tab,
+                            index    = index,
+                            isActive = tab.id == activeTabId,
+                            onClick  = { onSelectTab(tab.id) },
+                            onClose  = { onCloseTab(tab.id) },
+                            onLongClick = { tabToAssignGroup = tab },
+                        )
                     }
                     if (mode == TabMode.Private) {
                         if (privateTabs.isEmpty()) {
@@ -468,6 +459,7 @@ private fun HomeSvgIcon(color: Color, size: androidx.compose.ui.unit.Dp = 18.dp)
 @Composable
 private fun TabCard(
     tab:         OBTab,
+    index:       Int = 0,
     isActive:    Boolean,
     onClick:     () -> Unit,
     onClose:     () -> Unit,
@@ -481,12 +473,20 @@ private fun TabCard(
     val isHomeTab = tab.url.isBlank() || tab.url == "about:blank" || tab.title == "Home" || tab.displayUrl.isBlank()
 
     var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(tab.id) { visible = true }
+    LaunchedEffect(tab.id) {
+        kotlinx.coroutines.delay(com.orbit.browser.ui.animations.staggerDelay(index, baseDelay = 20, maxDelay = 120).toLong())
+        visible = true
+    }
 
-    val scale by animateFloatAsState(
-        targetValue   = if (visible) 1f else 0.8f,
-        animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f),
+    val cardScale by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0.88f,
+        animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
         label         = "tabcard_scale",
+    )
+    val cardEntryAlpha by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0f,
+        animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
+        label         = "tabcard_alpha",
     )
 
     val groupColor = remember(tab.groupColor) {
@@ -505,23 +505,9 @@ private fun TabCard(
     var offsetX by remember { mutableStateOf(0f) }
     var isDismissed by remember { mutableStateOf(false) }
 
-    var isMounted by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { isMounted = true }
-
-    val entryScale by animateFloatAsState(
-        targetValue   = if (isMounted) 1.0f else 0.90f,
-        animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f),
-        label         = "entry_scale"
-    )
-    val entryAlpha by animateFloatAsState(
-        targetValue   = if (isMounted) 1.0f else 0.0f,
-        animationSpec = tween(320, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)),
-        label         = "entry_alpha"
-    )
-
     val animatedOffsetX by animateFloatAsState(
         targetValue   = if (isDismissed) (if (offsetX >= 0) 1000f else -1000f) else offsetX,
-        animationSpec = spring(dampingRatio = 0.85f, stiffness = 400f),
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f),
         label         = "swipe_offset",
         finishedListener = {
             if (isDismissed) {
@@ -530,8 +516,7 @@ private fun TabCard(
         }
     )
 
-    val cardAlpha = (1f - (kotlin.math.abs(animatedOffsetX) / 450f)).coerceIn(0f, 1f) * entryAlpha
-    val dismissScaleFactor = (1f - (kotlin.math.abs(animatedOffsetX) / 2500f)).coerceAtLeast(0.85f)
+    val cardAlpha = (cardEntryAlpha * (1f - (kotlin.math.abs(animatedOffsetX) / 450f))).coerceIn(0f, 1f)
 
     val activeBezelBorder = if (isActive) {
         Modifier
@@ -545,7 +530,7 @@ private fun TabCard(
 
     Box(
         modifier = Modifier
-            .scale(scale * entryScale * dismissScaleFactor)
+            .scale(cardScale)
             .fillMaxWidth()
             .height(260.dp) // Taller height matching screenshot ratio
             .graphicsLayer {
@@ -642,7 +627,7 @@ private fun TabCard(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = null,
-                            onClick           = { isDismissed = true },
+                            onClick           = onClose,
                         ),
                     contentAlignment = Alignment.Center,
                 ) {

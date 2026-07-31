@@ -216,13 +216,15 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                         fadeIn(tween(180, easing = iosCurve)) togetherWith
                         (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(260, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.TabSwitcher) {
-                        // Open Tab Manager: Current page scales down continuously while tab grid emerges with spring physics
-                        (slideInVertically(initialOffsetY = { it / 6 }, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerIntSpring) + scaleIn(initialScale = 0.90f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeIn(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade)) togetherWith
-                        (scaleOut(targetScale = 0.92f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeOut(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade))
+                        // Open Tab Manager: Physics shrink-to-grid transition (380ms, dampingRatio 0.82, stiffness 320)
+                        val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
+                        (scaleIn(initialScale = 0.90f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 0.92f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.TabSwitcher) {
-                        // Select a Tab: Selected tab card scales up from grid to full screen
-                        (scaleIn(initialScale = 0.92f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeIn(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade)) togetherWith
-                        (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerIntSpring) + scaleOut(targetScale = 0.90f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeOut(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade))
+                        // Select Tab: Physics expand-from-grid transition
+                        val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
+                        (scaleIn(initialScale = 0.92f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 0.90f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.Browser) {
                         // Open new site or click Next button: Slide in Right to Left (iOS style steady & gradual)
                         (slideInHorizontally(initialOffsetX = { it }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
