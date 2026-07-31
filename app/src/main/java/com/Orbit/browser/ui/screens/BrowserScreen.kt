@@ -320,11 +320,10 @@ fun PersistentWebViewStack(
                 )
                 val tabAlpha by animateFloatAsState(
                     targetValue = when {
-                        isCurrentTabActive && isTabSwitcherScreen -> 0.2f
-                        isCurrentTabActive && !isHomeScreen -> 1.0f
+                        isCurrentTabActive && ui.screen == com.orbit.browser.ui.BrowserScreen.Browser -> 1.0f
                         else -> 0.0f
                     },
-                    animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
+                    animationSpec = tween(200, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
                     label = "tab_alpha"
                 )
                 Box(

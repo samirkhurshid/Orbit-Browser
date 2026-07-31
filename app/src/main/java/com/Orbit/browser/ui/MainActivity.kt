@@ -216,15 +216,15 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                         fadeIn(tween(180, easing = iosCurve)) togetherWith
                         (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(260, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.TabSwitcher) {
-                        // Open Tab Manager: Scale down into grid in place (NO horizontal sliding!)
+                        // Open Tab Manager: Scale down open site into grid (1.0 -> 0.88 grid scale, 120 FPS spring physics)
                         val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
-                        (scaleIn(initialScale = 0.90f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
-                        (scaleOut(targetScale = 0.90f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
+                        (scaleIn(initialScale = 1.05f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 0.88f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.TabSwitcher) {
-                        // Select Tab: Expand from grid in place (NO horizontal sliding!)
+                        // Select Tab: Expand selected card from grid into full screen (0.88 -> 1.0)
                         val openSpringFloat = com.orbit.browser.ui.animations.OBSpring.TabManagerOpen
-                        (scaleIn(initialScale = 0.90f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
-                        (scaleOut(targetScale = 0.90f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
+                        (scaleIn(initialScale = 0.88f, animationSpec = openSpringFloat) + fadeIn(tween(220, easing = iosCurve))) togetherWith
+                        (scaleOut(targetScale = 1.05f, animationSpec = openSpringFloat) + fadeOut(tween(200, easing = iosCurve)))
                     } else if (initialState == BrowserScreen.Home && targetState == BrowserScreen.Browser) {
                         // Open site from Home screen ONLY: Slide in Right to Left
                         (slideInHorizontally(initialOffsetX = { it }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
