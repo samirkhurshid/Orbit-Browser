@@ -396,12 +396,14 @@ fun PersistentWebViewStack(
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
                     label = "tab_top_padding"
                 )
+                val safeTopPaddingDp = topPaddingDp.coerceAtLeast(0.dp)
+                val safeCornerRadiusDp = tabCornerRadius.coerceAtLeast(0.dp)
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .zIndex(if (isCurrentTabActive) 100f else 0f)
-                        .padding(top = topPaddingDp)
+                        .padding(top = safeTopPaddingDp)
                         .then(if (!isTabSwitcherActive) Modifier.statusBarsPadding() else Modifier)
                         .graphicsLayer {
                             transformOrigin = TransformOrigin(0f, 0f)
@@ -417,7 +419,7 @@ fun PersistentWebViewStack(
                                 this.height(innerCardHeightDp / scaleRatio)
                             } else this
                         }
-                        .clip(RoundedCornerShape(tabCornerRadius))
+                        .clip(RoundedCornerShape(safeCornerRadiusDp))
                         .run {
                             if (!isCurrentTabActive && tabAlpha == 0f) {
                                 this.offset(x = (-9999).dp)
