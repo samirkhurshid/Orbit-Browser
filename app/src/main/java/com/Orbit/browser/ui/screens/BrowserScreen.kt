@@ -295,23 +295,36 @@ fun PersistentWebViewStack(
 
     Box(modifier = modifier.fillMaxSize()) {
         tabs.forEach { tab ->
-            val isCurrentTabActive = tab.id == activeTabId && tab.url.isNotBlank()
-            val isTabManagerOpen = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
+            val isCurrentTabActive = tab.id == activeTabId
+            val isHomeScreen = ui.screen == com.orbit.browser.ui.BrowserScreen.Home
+            val isTabSwitcherScreen = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
 
             key(tab.id) {
                 val tabOffsetX by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive) 0f else if (ui.screen == com.orbit.browser.ui.BrowserScreen.Home) 1000f else -1000f,
+                    targetValue = when {
+                        !isCurrentTabActive -> -1000f
+                        isHomeScreen -> 1000f  // Offscreen right so it slides in Right-to-Left when opening site, and slides out Left-to-Right when closing site back to Home!
+                        else -> 0f              // NO horizontal sliding when in Browser or Tab Switcher!
+                    },
                     animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
                     label = "tab_offset_x"
                 )
-                val webViewScale by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive && isTabManagerOpen) 0.88f else 1f,
+                val tabScale by animateFloatAsState(
+                    targetValue = when {
+                        isCurrentTabActive && isTabSwitcherScreen -> 0.88f  // Shrink down in place into grid
+                        isCurrentTabActive -> 1.0f
+                        else -> 0.85f
+                    },
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
-                    label = "webview_scale"
+                    label = "tab_scale"
                 )
                 val tabAlpha by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive) (if (isTabManagerOpen) 0.85f else 1f) else 0f,
-                    animationSpec = tween(180),
+                    targetValue = when {
+                        isCurrentTabActive && isTabSwitcherScreen -> 0.2f
+                        isCurrentTabActive && !isHomeScreen -> 1.0f
+                        else -> 0.0f
+                    },
+                    animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
                     label = "tab_alpha"
                 )
                 Box(
@@ -321,8 +334,8 @@ fun PersistentWebViewStack(
                         .statusBarsPadding()
                         .graphicsLayer {
                             translationX = tabOffsetX
-                            scaleX       = webViewScale
-                            scaleY       = webViewScale
+                            scaleX       = tabScale
+                            scaleY       = tabScale
                             alpha        = tabAlpha
                         }
                         .run {
