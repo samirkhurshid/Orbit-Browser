@@ -22,7 +22,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -295,11 +297,11 @@ fun PersistentWebViewStack(
                 } else if (isTabSwitcherActive) 0.46f else 1.0f
 
                 val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0) {
-                    activeCardBounds!!.x - (screenWidthPx * (1f - scaleRatio) / 2f)
+                    activeCardBounds!!.x
                 } else 0f
 
                 val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
-                    activeCardBounds!!.y - (screenHeightPx * (1f - scaleRatio) / 2f)
+                    activeCardBounds!!.y
                 } else 0f
 
                 val offXInPx = with(density) { 1000.dp.toPx() }
@@ -349,13 +351,15 @@ fun PersistentWebViewStack(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .zIndex(if (isCurrentTabActive && isTabSwitcherActive) 100f else 0f)
                         .then(if (!isTabSwitcherActive) Modifier.padding(top = 56.dp).statusBarsPadding() else Modifier)
                         .graphicsLayer {
-                            translationX = tabOffsetX
-                            translationY = tabOffsetY
-                            scaleX       = tabScale
-                            scaleY       = tabScale
-                            alpha        = tabAlpha
+                            transformOrigin = TransformOrigin(0f, 0f)
+                            translationX    = tabOffsetX
+                            translationY    = tabOffsetY
+                            scaleX          = tabScale
+                            scaleY          = tabScale
+                            alpha           = tabAlpha
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }
                         .run {
