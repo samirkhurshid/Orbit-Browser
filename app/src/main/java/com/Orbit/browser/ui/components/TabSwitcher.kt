@@ -686,7 +686,7 @@ private fun TabCard(
                     Image(
                         bitmap             = tab.thumbnail.asImageBitmap(),
                         contentDescription = null,
-                        contentScale       = ContentScale.FillWidth,
+                        contentScale       = ContentScale.Crop,
                         alignment          = Alignment.TopCenter,
                         modifier           = Modifier.fillMaxSize(),
                     )

@@ -354,7 +354,7 @@ class OBWebView @JvmOverloads constructor(
                         val width = this@OBWebView.width
                         val height = this@OBWebView.height
                         if (width > 0 && height > 0) {
-                            val scale = (360f / width).coerceAtMost(1.0f)
+                            val scale = (600f / width).coerceAtMost(1.0f)
                             val thumbW = (width * scale).toInt().coerceAtLeast(1)
                             val thumbH = (height * scale).toInt().coerceAtLeast(1)
                             val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
