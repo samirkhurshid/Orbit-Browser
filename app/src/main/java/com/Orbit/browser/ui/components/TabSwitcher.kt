@@ -681,39 +681,19 @@ private fun TabCard(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                if (isHomeTab) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background((if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1)).copy(alpha = 0.14f))
-                                .border(1.dp, (if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1)).copy(alpha = 0.25f), CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            HomeSvgIcon(
-                                color = if (tab.isPrivate) Color(0xFFC084FC) else if (isDark) Color.White else (groupColor ?: a1),
-                                size  = 24.dp,
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text       = if (tab.isPrivate) "Incognito" else "Orbit Home",
-                            fontSize   = 11.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color      = if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.8f) else if (isDark) Color.White.copy(alpha = 0.9f) else g.tx2Color,
-                        )
-                    }
-                } else if (!isActive && tab.thumbnail != null) {
+                if (!isActive && tab.thumbnail != null) {
                     Image(
                         bitmap             = tab.thumbnail.asImageBitmap(),
                         contentDescription = null,
                         contentScale       = ContentScale.Crop,
                         alignment          = Alignment.TopCenter,
                         modifier           = Modifier.fillMaxSize(),
+                    )
+                } else if (!isActive && isHomeTab) {
+                    MiniatureHomeScreenPreview(
+                        isPrivate   = tab.isPrivate,
+                        isDark      = isDark,
+                        accentColor = groupColor ?: a1,
                     )
                 } else if (!isActive) {
                     Box(
@@ -760,6 +740,93 @@ private fun TabCard(
                     .clip(CircleShape)
                     .background(groupColor ?: Color(0xFF00DDA0)),
             )
+        }
+    }
+}
+
+@Composable
+private fun MiniatureHomeScreenPreview(
+    isPrivate: Boolean,
+    isDark: Boolean,
+    accentColor: Color,
+) {
+    val bg = if (isPrivate) Color(0xFF140D24) else if (isDark) Color(0xFF090B18) else Color(0xFFF4F7FC)
+    val cardBg = if (isPrivate) Color(0xFF26193E) else if (isDark) Color(0xFF1A1D33) else Color.White
+    val txColor = if (isPrivate) Color(0xFFC084FC) else if (isDark) Color.White.copy(alpha = 0.9f) else Color(0xFF1E293B)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bg)
+            .padding(10.dp),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Search Bar Pill Mockup
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(cardBg)
+                    .border(0.5.dp, txColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(accentColor.copy(alpha = 0.6f))
+                    )
+                    Text("Search or enter URL", fontSize = 8.sp, color = txColor.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
+                }
+            }
+
+            // Quick Access Grid (4 Shortcut Circles Mockup)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(4) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(cardBg)
+                            .border(0.5.dp, accentColor.copy(alpha = 0.25f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(accentColor.copy(alpha = 0.4f))
+                        )
+                    }
+                }
+            }
+
+            // Privacy Shield & Weather Stats Chip Mockup
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(cardBg.copy(alpha = 0.8f))
+                    .border(0.5.dp, txColor.copy(alpha = 0.1f), RoundedCornerShape(9.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    ShieldIcon(color = accentColor.copy(alpha = 0.7f), size = 9.dp)
+                    Text("Orbit Shield Protected", fontSize = 7.sp, color = txColor.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }

@@ -55,11 +55,27 @@ fun BrowserScreen(
     var webViewRef by remember { mutableStateOf<OBWebView?>(null) }
     var currentWvUrl by remember { mutableStateOf("") }
 
+    val localView = androidx.compose.ui.platform.LocalView.current
+
     LaunchedEffect(ui.screen, ui.tabsOpen) {
         if (ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen) {
             val wv = webViewRef
-            if (wv != null) {
+            val activeId = activeTab?.id
+            if (wv != null && activeTab?.url?.isNotBlank() == true && activeTab?.url != "about:blank" && activeTab?.url != "orbit://home") {
                 wv.captureCurrentStateThumbnail()
+            } else if (activeId != null && localView.width > 0 && localView.height > 0) {
+                try {
+                    val scale = (600f / localView.width).coerceAtMost(1.0f)
+                    val thumbW = (localView.width * scale).toInt().coerceAtLeast(1)
+                    val thumbH = (localView.height * scale).toInt().coerceAtLeast(1)
+                    val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
+                    val canvas = android.graphics.Canvas(bitmap)
+                    canvas.scale(scale, scale)
+                    localView.draw(canvas)
+                    viewModel.tabManager.updateTab(activeId) { it.copy(thumbnail = bitmap) }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
