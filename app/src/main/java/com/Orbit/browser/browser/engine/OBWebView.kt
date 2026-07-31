@@ -218,6 +218,38 @@ class OBWebView @JvmOverloads constructor(
         }
     }
 
+    private var lastScrollCaptureTime = 0L
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        val now = System.currentTimeMillis()
+        if (now - lastScrollCaptureTime > 600) {
+            lastScrollCaptureTime = now
+            postDelayed({
+                captureCurrentStateThumbnail()
+            }, 300)
+        }
+    }
+
+    fun captureCurrentStateThumbnail() {
+        try {
+            val width = this@OBWebView.width
+            val height = this@OBWebView.height
+            if (width > 0 && height > 0) {
+                val scale = (600f / width).coerceAtMost(1.0f)
+                val thumbW = (width * scale).toInt().coerceAtLeast(1)
+                val thumbH = (height * scale).toInt().coerceAtLeast(1)
+                val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                canvas.scale(scale, scale)
+                this@OBWebView.draw(canvas)
+                tabManager?.updateTab(tabId) { it.copy(thumbnail = bitmap) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun setupWebViewClient() {
         webViewClient = object : WebViewClient() {
 
@@ -350,22 +382,7 @@ class OBWebView @JvmOverloads constructor(
                     )
                 }
                 postDelayed({
-                    try {
-                        val width = this@OBWebView.width
-                        val height = this@OBWebView.height
-                        if (width > 0 && height > 0) {
-                            val scale = (600f / width).coerceAtMost(1.0f)
-                            val thumbW = (width * scale).toInt().coerceAtLeast(1)
-                            val thumbH = (height * scale).toInt().coerceAtLeast(1)
-                            val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
-                            val canvas = android.graphics.Canvas(bitmap)
-                            canvas.scale(scale, scale)
-                            this@OBWebView.draw(canvas)
-                            tabManager?.updateTab(tabId) { it.copy(thumbnail = bitmap) }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    captureCurrentStateThumbnail()
                 }, 500)
             }
 

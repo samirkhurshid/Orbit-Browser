@@ -53,28 +53,11 @@ fun BrowserScreen(
     var webViewRef by remember { mutableStateOf<OBWebView?>(null) }
     var currentWvUrl by remember { mutableStateOf("") }
 
-    val tabsOpen   = ui.tabsOpen
-
-    LaunchedEffect(tabsOpen) {
-        if (tabsOpen) {
+    LaunchedEffect(ui.screen, ui.tabsOpen) {
+        if (ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen) {
             val wv = webViewRef
             if (wv != null) {
-                try {
-                    val width = wv.width
-                    val height = wv.height
-                    if (width > 0 && height > 0) {
-                        val scale = (600f / width).coerceAtMost(1.0f)
-                        val thumbW = (width * scale).toInt().coerceAtLeast(1)
-                        val thumbH = (height * scale).toInt().coerceAtLeast(1)
-                        val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
-                        val canvas = android.graphics.Canvas(bitmap)
-                        canvas.scale(scale, scale)
-                        wv.draw(canvas)
-                        viewModel.tabManager.updateActiveTab { it.copy(thumbnail = bitmap) }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                wv.captureCurrentStateThumbnail()
             }
         }
     }
