@@ -47,9 +47,17 @@ object OBSpring {
 fun staggerDelay(index: Int, baseDelay: Int = 30, maxDelay: Int = 180): Int =
     (index * baseDelay).coerceAtMost(maxDelay)
 
-val islandSizeSpec: AnimationSpec<Dp> = tween(durationMillis = OBDuration.Normal, easing = OBEasing.IosCurve)
-val islandAlphaSpec: AnimationSpec<Float> = tween(durationMillis = OBDuration.Fast, easing = OBEasing.IosCurve)
-val overlayAlphaSpec: AnimationSpec<Float> = tween(durationMillis = OBDuration.Normal, easing = OBEasing.IosCurve)
-val pageScaleSpec: AnimationSpec<Float> = tween(durationMillis = OBDuration.Normal, easing = OBEasing.IosCurve)
-val cardEntranceSpec: AnimationSpec<Float> = tween(durationMillis = OBDuration.Normal, easing = OBEasing.IosCurve)
+object OBTabAnimations {
+    val TabManagerSpring = spring<Float>(dampingRatio = 0.82f, stiffness = 380f)
+    val TabManagerIntSpring = spring<androidx.compose.ui.unit.IntOffset>(dampingRatio = 0.82f, stiffness = 380f)
+    val TabManagerFade = tween<Float>(durationMillis = 380, easing = OBEasing.IosCurve)
+
+    val NewTabScaleSpring = spring<Float>(dampingRatio = 0.82f, stiffness = 380f)
+    val NewTabPlacementSpring = spring<androidx.compose.ui.unit.IntOffset>(dampingRatio = 0.82f, stiffness = 380f)
+
+    val CloseTabSlideSpring = spring<Float>(dampingRatio = 0.85f, stiffness = 400f)
+
+    val IncognitoSpaceSlideSpring = spring<androidx.compose.ui.unit.IntOffset>(dampingRatio = 0.85f, stiffness = 320f)
+    val IncognitoFade = tween<Float>(durationMillis = 450, easing = OBEasing.IosCurve)
+}
 

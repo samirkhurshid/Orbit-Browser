@@ -216,11 +216,13 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
                         fadeIn(tween(180, easing = iosCurve)) togetherWith
                         (slideOutVertically(targetOffsetY = { it }, animationSpec = tween(260, easing = iosCurve)) + fadeOut(tween(160, easing = iosCurve)))
                     } else if (targetState == BrowserScreen.TabSwitcher) {
-                        (slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280, easing = iosCurve)) + scaleIn(initialScale = 0.94f, animationSpec = tween(280, easing = iosCurve)) + fadeIn(tween(200))) togetherWith
-                        (scaleOut(targetScale = 0.96f, animationSpec = tween(220, easing = iosCurve)) + fadeOut(tween(180)))
+                        // Open Tab Manager: Current page scales down continuously while tab grid emerges with spring physics
+                        (slideInVertically(initialOffsetY = { it / 6 }, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerIntSpring) + scaleIn(initialScale = 0.90f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeIn(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade)) togetherWith
+                        (scaleOut(targetScale = 0.92f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeOut(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade))
                     } else if (initialState == BrowserScreen.TabSwitcher) {
-                        (scaleIn(initialScale = 0.96f, animationSpec = tween(260, easing = iosCurve)) + fadeIn(tween(200))) togetherWith
-                        (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = tween(240, easing = iosCurve)) + scaleOut(targetScale = 0.94f, animationSpec = tween(240, easing = iosCurve)) + fadeOut(tween(180)))
+                        // Select a Tab: Selected tab card scales up from grid to full screen
+                        (scaleIn(initialScale = 0.92f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeIn(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade)) togetherWith
+                        (slideOutVertically(targetOffsetY = { it / 6 }, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerIntSpring) + scaleOut(targetScale = 0.90f, animationSpec = com.orbit.browser.ui.animations.OBTabAnimations.TabManagerSpring) + fadeOut(com.orbit.browser.ui.animations.OBTabAnimations.TabManagerFade))
                     } else if (targetState == BrowserScreen.Browser) {
                         // Open new site or click Next button: Slide in Right to Left (iOS style steady & gradual)
                         (slideInHorizontally(initialOffsetX = { it }, animationSpec = iosSpringInt) + fadeIn(tween(180, easing = iosCurve))) togetherWith
