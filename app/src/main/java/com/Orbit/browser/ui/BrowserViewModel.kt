@@ -311,7 +311,7 @@ class BrowserViewModel @Inject constructor(
     }
 
     private fun observeScreenForPersistence() = viewModelScope.launch {
-        _ui.map { it.screen }.distinctUntilChanged().collect { screen ->
+        _ui.map { it.screen }.distinctUntilChanged().drop(1).collect { screen ->
             prefs.saveLastClosedScreen(screen.name)
         }
     }
@@ -320,18 +320,6 @@ class BrowserViewModel @Inject constructor(
         viewModelScope.launch {
             val currentScreen = _ui.value.screen
             prefs.saveLastClosedScreen(currentScreen.name)
-
-            // If user exited browser on Home screen, ERASE previously opened site from active tab as specified by user!
-            if (currentScreen == BrowserScreen.Home) {
-                tabManager.updateActiveTab { tab ->
-                    tab.copy(
-                        url = "orbit://home",
-                        displayUrl = "",
-                        title = "Home",
-                        searchQuery = ""
-                    )
-                }
-            }
 
             val normalTabs = tabManager.tabs.value.filter { !it.isPrivate }
             if (normalTabs.isNotEmpty()) {
@@ -411,38 +399,17 @@ class BrowserViewModel @Inject constructor(
         } catch (_: Exception) { null }
 
         val activeTabObj = tabManager.activeTab.value
+        val hasActiveSite = activeTabObj != null && activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home"
 
-        if (savedScreen != null) {
-            if (savedScreen == BrowserScreen.Home) {
-                // Closed on Home Screen: Erase site from active tab so it opens clean in Home state!
-                tabManager.updateActiveTab { tab ->
-                    tab.copy(
-                        url = "orbit://home",
-                        displayUrl = "",
-                        title = "Home",
-                        searchQuery = ""
-                    )
-                }
-                _ui.update { it.copy(screen = BrowserScreen.Home) }
-                // Perform background refreshments for weather & news
-                fetchWeather()
-                loadRealNews()
-            } else if (savedScreen == BrowserScreen.Browser) {
-                if (activeTabObj != null && activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home") {
-                    _ui.update { it.copy(screen = BrowserScreen.Browser) }
-                } else {
-                    _ui.update { it.copy(screen = BrowserScreen.Home) }
-                }
-            } else {
-                _ui.update { it.copy(screen = savedScreen) }
-            }
-        } else {
-            if (activeTabObj != null && activeTabObj.url.isNotBlank() && activeTabObj.url != "orbit://home") {
-                _ui.update { it.copy(screen = BrowserScreen.Browser) }
-            } else {
-                _ui.update { it.copy(screen = BrowserScreen.Home) }
-            }
+        val targetScreen = when {
+            savedScreen == BrowserScreen.Browser && hasActiveSite -> BrowserScreen.Browser
+            savedScreen == BrowserScreen.Home -> BrowserScreen.Home
+            savedScreen != null -> savedScreen
+            hasActiveSite -> BrowserScreen.Browser
+            else -> BrowserScreen.Home
         }
+
+        _ui.update { it.copy(screen = targetScreen) }
     }
 
     private fun loadPreferences() = viewModelScope.launch {
