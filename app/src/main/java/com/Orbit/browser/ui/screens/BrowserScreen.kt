@@ -283,30 +283,47 @@ fun PersistentWebViewStack(
             val isTabSwitcherScreen = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
 
             key(tab.id) {
-                val tabOffsetX by animateFloatAsState(
-                    targetValue = when {
-                        !isCurrentTabActive -> -1000f
-                        isHomeScreen -> 1000f  // Offscreen right so it slides in Right-to-Left when opening site, and slides out Left-to-Right when closing site back to Home!
-                        else -> 0f              // NO horizontal sliding when in Browser or Tab Switcher!
-                    },
-                    animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
-                    label = "tab_offset_x"
-                )
+                val isTabSwitcherActive = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
+
                 val tabScale by animateFloatAsState(
                     targetValue = when {
-                        isCurrentTabActive && isTabSwitcherScreen -> 0.88f  // Shrink down in place into grid
+                        isCurrentTabActive && isTabSwitcherActive -> 0.46f  // Scale down open page to fit inside tab grid
                         isCurrentTabActive -> 1.0f
                         else -> 0.85f
                     },
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
                     label = "tab_scale"
                 )
+                val tabCornerRadius by animateDpAsState(
+                    targetValue = if (isCurrentTabActive && isTabSwitcherActive) 22.dp else 0.dp,
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
+                    label = "tab_corner"
+                )
+                val tabOffsetY by animateFloatAsState(
+                    targetValue = when {
+                        !isCurrentTabActive -> 0f
+                        isTabSwitcherActive -> -120f  // Move up to align with tab card position
+                        else -> 0f
+                    },
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
+                    label = "tab_offset_y"
+                )
+                val tabOffsetX by animateFloatAsState(
+                    targetValue = when {
+                        !isCurrentTabActive -> -1000f
+                        isHomeScreen -> 1000f  // Slide in Right-to-Left when opening site from home
+                        isTabSwitcherActive -> -140f // Shift left to align with column 0 card
+                        else -> 0f
+                    },
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
+                    label = "tab_offset_x"
+                )
                 val tabAlpha by animateFloatAsState(
                     targetValue = when {
-                        isCurrentTabActive && ui.screen == com.orbit.browser.ui.BrowserScreen.Browser -> 1.0f
+                        isCurrentTabActive -> 1.0f
                         else -> 0.0f
                     },
-                    animationSpec = tween(200, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
+                    animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
                     label = "tab_alpha"
                 )
                 Box(
@@ -316,10 +333,13 @@ fun PersistentWebViewStack(
                         .statusBarsPadding()
                         .graphicsLayer {
                             translationX = tabOffsetX
+                            translationY = tabOffsetY
                             scaleX       = tabScale
                             scaleY       = tabScale
                             alpha        = tabAlpha
+                            shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }
+                        .clip(RoundedCornerShape(tabCornerRadius))
                         .run {
                             if (!isCurrentTabActive && tabAlpha == 0f) {
                                 this.offset(x = (-9999).dp)
