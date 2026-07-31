@@ -295,12 +295,14 @@ fun PersistentWebViewStack(
                 } else if (isTabSwitcherActive) 0.46f else 1.0f
 
                 val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0) {
-                    with(density) { (activeCardBounds!!.x - (screenWidthPx * (1f - scaleRatio) / 2f)).toDp().value }
+                    activeCardBounds!!.x - (screenWidthPx * (1f - scaleRatio) / 2f)
                 } else 0f
 
                 val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
-                    with(density) { (activeCardBounds!!.y - (screenHeightPx * (1f - scaleRatio) / 2f)).toDp().value }
+                    activeCardBounds!!.y - (screenHeightPx * (1f - scaleRatio) / 2f)
                 } else 0f
+
+                val offXInPx = with(density) { 1000.dp.toPx() }
 
                 val tabScale by animateFloatAsState(
                     targetValue = if (isCurrentTabActive) scaleRatio else 0.85f,
@@ -323,8 +325,8 @@ fun PersistentWebViewStack(
                 )
                 val tabOffsetX by animateFloatAsState(
                     targetValue = when {
-                        !isCurrentTabActive -> -1000f
-                        isHomeScreen -> 1000f
+                        !isCurrentTabActive -> -offXInPx
+                        isHomeScreen -> offXInPx
                         isTabSwitcherActive -> calcTargetX
                         else -> 0f
                     },
@@ -339,6 +341,11 @@ fun PersistentWebViewStack(
                     animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
                     label = "tab_alpha"
                 )
+
+                val activeCardHeightDp = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
+                    with(density) { (activeCardBounds!!.height / scaleRatio).toDp() }
+                } else androidx.compose.ui.unit.Dp.Unspecified
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -350,6 +357,11 @@ fun PersistentWebViewStack(
                             scaleY       = tabScale
                             alpha        = tabAlpha
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
+                        }
+                        .run {
+                            if (activeCardHeightDp != androidx.compose.ui.unit.Dp.Unspecified) {
+                                this.height(activeCardHeightDp)
+                            } else this
                         }
                         .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
                         .run {
