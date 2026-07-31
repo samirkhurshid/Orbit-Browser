@@ -290,34 +290,25 @@ fun PersistentWebViewStack(
             val isTabSwitcherActive = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
 
             key(tab.id) {
-                val cardScaleX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0 && screenWidthPx > 0) {
+                val scaleRatio = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0 && screenWidthPx > 0) {
                     (activeCardBounds!!.width / screenWidthPx).coerceIn(0.2f, 1.0f)
-                } else if (isTabSwitcherActive) 0.45f else 1.0f
-
-                val cardScaleY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0 && screenHeightPx > 0) {
-                    (activeCardBounds!!.height / screenHeightPx).coerceIn(0.2f, 1.0f)
-                } else if (isTabSwitcherActive) 0.45f else 1.0f
+                } else if (isTabSwitcherActive) 0.46f else 1.0f
 
                 val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0) {
-                    with(density) { (activeCardBounds!!.x - (screenWidthPx * (1f - cardScaleX) / 2f)).toDp().value }
-                } else if (isTabSwitcherActive) -100f else 0f
+                    with(density) { (activeCardBounds!!.x - (screenWidthPx * (1f - scaleRatio) / 2f)).toDp().value }
+                } else 0f
 
                 val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
-                    with(density) { (activeCardBounds!!.y - (screenHeightPx * (1f - cardScaleY) / 2f)).toDp().value }
-                } else if (isTabSwitcherActive) -60f else 0f
+                    with(density) { (activeCardBounds!!.y - (screenHeightPx * (1f - scaleRatio) / 2f)).toDp().value }
+                } else 0f
 
-                val tabScaleX by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive) cardScaleX else 0.85f,
+                val tabScale by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive) scaleRatio else 0.85f,
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
-                    label = "tab_scale_x"
-                )
-                val tabScaleY by animateFloatAsState(
-                    targetValue = if (isCurrentTabActive) cardScaleY else 0.85f,
-                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
-                    label = "tab_scale_y"
+                    label = "tab_scale"
                 )
                 val tabCornerRadius by animateDpAsState(
-                    targetValue = if (isCurrentTabActive && isTabSwitcherActive) 18.dp else 0.dp,
+                    targetValue = if (isCurrentTabActive && isTabSwitcherActive) 14.dp else 0.dp,
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
                     label = "tab_corner"
                 )
@@ -351,17 +342,16 @@ fun PersistentWebViewStack(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 56.dp)
-                        .statusBarsPadding()
+                        .then(if (!isTabSwitcherActive) Modifier.padding(top = 56.dp).statusBarsPadding() else Modifier)
                         .graphicsLayer {
                             translationX = tabOffsetX
                             translationY = tabOffsetY
-                            scaleX       = tabScaleX
-                            scaleY       = tabScaleY
+                            scaleX       = tabScale
+                            scaleY       = tabScale
                             alpha        = tabAlpha
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }
-                        .clip(RoundedCornerShape(tabCornerRadius))
+                        .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
                         .run {
                             if (!isCurrentTabActive && tabAlpha == 0f) {
                                 this.offset(x = (-9999).dp)

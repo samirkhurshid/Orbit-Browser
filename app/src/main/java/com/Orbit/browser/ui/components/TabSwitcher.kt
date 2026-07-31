@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -639,7 +640,7 @@ private fun TabCard(
                     .weight(1f)
                     .onGloballyPositioned { coords ->
                         if (isActive && onActiveCardBoundsMeasured != null) {
-                            val pos = coords.positionInWindow()
+                            val pos = coords.positionInRoot()
                             onActiveCardBoundsMeasured(
                                 com.orbit.browser.ui.CardSlotBounds(
                                     x = pos.x,
