@@ -276,33 +276,55 @@ fun PersistentWebViewStack(
         }
     }
 
+    val activeCardBounds by viewModel.activeTabCardBounds.collectAsState()
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+
+    val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+
     Box(modifier = modifier.fillMaxSize()) {
         tabs.forEach { tab ->
             val isCurrentTabActive = tab.id == activeTabId
             val isHomeScreen = ui.screen == com.orbit.browser.ui.BrowserScreen.Home
-            val isTabSwitcherScreen = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
+            val isTabSwitcherActive = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
 
             key(tab.id) {
-                val isTabSwitcherActive = ui.screen == com.orbit.browser.ui.BrowserScreen.TabSwitcher || ui.tabsOpen
+                val cardScaleX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0 && screenWidthPx > 0) {
+                    (activeCardBounds!!.width / screenWidthPx).coerceIn(0.2f, 1.0f)
+                } else if (isTabSwitcherActive) 0.45f else 1.0f
 
-                val tabScale by animateFloatAsState(
-                    targetValue = when {
-                        isCurrentTabActive && isTabSwitcherActive -> 0.46f  // Scale down open page to fit inside tab grid
-                        isCurrentTabActive -> 1.0f
-                        else -> 0.85f
-                    },
+                val cardScaleY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0 && screenHeightPx > 0) {
+                    (activeCardBounds!!.height / screenHeightPx).coerceIn(0.2f, 1.0f)
+                } else if (isTabSwitcherActive) 0.45f else 1.0f
+
+                val calcTargetX = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.width > 0) {
+                    with(density) { (activeCardBounds!!.x - (screenWidthPx * (1f - cardScaleX) / 2f)).toDp().value }
+                } else if (isTabSwitcherActive) -100f else 0f
+
+                val calcTargetY = if (isCurrentTabActive && isTabSwitcherActive && activeCardBounds != null && activeCardBounds!!.height > 0) {
+                    with(density) { (activeCardBounds!!.y - (screenHeightPx * (1f - cardScaleY) / 2f)).toDp().value }
+                } else if (isTabSwitcherActive) -60f else 0f
+
+                val tabScaleX by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive) cardScaleX else 0.85f,
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
-                    label = "tab_scale"
+                    label = "tab_scale_x"
+                )
+                val tabScaleY by animateFloatAsState(
+                    targetValue = if (isCurrentTabActive) cardScaleY else 0.85f,
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
+                    label = "tab_scale_y"
                 )
                 val tabCornerRadius by animateDpAsState(
-                    targetValue = if (isCurrentTabActive && isTabSwitcherActive) 22.dp else 0.dp,
+                    targetValue = if (isCurrentTabActive && isTabSwitcherActive) 18.dp else 0.dp,
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
                     label = "tab_corner"
                 )
                 val tabOffsetY by animateFloatAsState(
                     targetValue = when {
                         !isCurrentTabActive -> 0f
-                        isTabSwitcherActive -> -120f  // Move up to align with tab card position
+                        isTabSwitcherActive -> calcTargetY
                         else -> 0f
                     },
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
@@ -311,8 +333,8 @@ fun PersistentWebViewStack(
                 val tabOffsetX by animateFloatAsState(
                     targetValue = when {
                         !isCurrentTabActive -> -1000f
-                        isHomeScreen -> 1000f  // Slide in Right-to-Left when opening site from home
-                        isTabSwitcherActive -> -140f // Shift left to align with column 0 card
+                        isHomeScreen -> 1000f
+                        isTabSwitcherActive -> calcTargetX
                         else -> 0f
                     },
                     animationSpec = spring(dampingRatio = 0.85f, stiffness = 300f),
@@ -334,8 +356,8 @@ fun PersistentWebViewStack(
                         .graphicsLayer {
                             translationX = tabOffsetX
                             translationY = tabOffsetY
-                            scaleX       = tabScale
-                            scaleY       = tabScale
+                            scaleX       = tabScaleX
+                            scaleY       = tabScaleY
                             alpha        = tabAlpha
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }

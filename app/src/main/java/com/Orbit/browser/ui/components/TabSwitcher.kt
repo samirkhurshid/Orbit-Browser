@@ -25,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -72,6 +74,7 @@ fun TabSwitcherScreen(
         onCreateGroup    = { name, color, ids -> viewModel.createTabGroup(name, color, ids) },
         onAssignGroup    = { tabId, groupName -> viewModel.assignTabToGroup(tabId, groupName) },
         onCloseGroup     = { groupName -> viewModel.closeTabGroup(groupName) },
+        onActiveCardBoundsMeasured = { bounds -> viewModel.updateActiveTabCardBounds(bounds) },
         modifier         = modifier,
     )
 }
@@ -91,6 +94,7 @@ private fun TabSwitcherContent(
     onCreateGroup: (name: String, colorHex: String, tabIds: List<String>) -> Unit,
     onAssignGroup: (tabId: String, groupName: String?) -> Unit,
     onCloseGroup: (groupName: String) -> Unit,
+    onActiveCardBoundsMeasured: (com.orbit.browser.ui.CardSlotBounds) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val theme   = LocalOBTheme.current
@@ -357,6 +361,7 @@ private fun TabSwitcherContent(
                             onClick  = { onSelectTab(tab.id) },
                             onClose  = { onCloseTab(tab.id) },
                             onLongClick = { tabToAssignGroup = tab },
+                            onActiveCardBoundsMeasured = onActiveCardBoundsMeasured,
                         )
                     }
                     if (mode == TabMode.Private) {
@@ -451,10 +456,6 @@ private fun HomeSvgIcon(color: Color, size: androidx.compose.ui.unit.Dp = 18.dp)
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TALLER TAB CARD (Matching Reference Image Design: 225dp height)
-// ═══════════════════════════════════════════════════════════════════════════
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TabCard(
@@ -464,6 +465,7 @@ private fun TabCard(
     onClick:     () -> Unit,
     onClose:     () -> Unit,
     onLongClick: () -> Unit,
+    onActiveCardBoundsMeasured: ((com.orbit.browser.ui.CardSlotBounds) -> Unit)? = null,
 ) {
     val theme  = LocalOBTheme.current
     val g      = theme.glass
@@ -532,7 +534,7 @@ private fun TabCard(
         modifier = Modifier
             .scale(cardScale)
             .fillMaxWidth()
-            .height(260.dp) // Taller height matching screenshot ratio
+            .height(260.dp)
             .graphicsLayer {
                 translationX = animatedOffsetX
                 alpha        = cardAlpha
@@ -567,12 +569,10 @@ private fun TabCard(
             ),
     ) {
         Column(modifier = Modifier.padding(top = 6.dp, bottom = 4.dp, start = 4.dp, end = 4.dp)) {
-            // Card Header Bar (Favicon + Site Title + Circular Grey Close Button)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier          = Modifier.padding(bottom = 6.dp, start = 4.dp, end = 4.dp),
             ) {
-                // Favicon / Home Icon
                 if (isHomeTab) {
                     HomeSvgIcon(
                         color = if (isActive) Color.White else (if (tab.isPrivate) Color(0xFFC084FC) else (groupColor ?: a1)),
@@ -605,7 +605,6 @@ private fun TabCard(
 
                 Spacer(Modifier.width(8.dp))
 
-                // Title
                 Text(
                     text       = if (isHomeTab) (if (tab.isPrivate) "Incognito Home" else "Home") else tab.title.ifBlank { "New Tab" },
                     fontSize   = 12.5.sp,
@@ -618,7 +617,6 @@ private fun TabCard(
 
                 Spacer(Modifier.width(4.dp))
 
-                // Circular grey close button ✕ (Matching reference screenshot)
                 Box(
                     modifier = Modifier
                         .size(22.dp)
@@ -635,16 +633,28 @@ private fun TabCard(
                 }
             }
 
-            // Taller Inner Preview Area (Reduced left, right & bottom bezels for maximum preview size)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .onGloballyPositioned { coords ->
+                        if (isActive && onActiveCardBoundsMeasured != null) {
+                            val pos = coords.positionInWindow()
+                            onActiveCardBoundsMeasured(
+                                com.orbit.browser.ui.CardSlotBounds(
+                                    x = pos.x,
+                                    y = pos.y,
+                                    width = coords.size.width.toFloat(),
+                                    height = coords.size.height.toFloat()
+                                )
+                            )
+                        }
+                    }
                     .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp, topStart = 14.dp, topEnd = 14.dp))
                     .background(
                         if (tab.isPrivate) Color(0xFF1E152A)
                         else if (isHomeTab) (if (isDark) Color(0xFF090B18) else Color.White)
-                        else Color.White
+                        else Color.Transparent
                     )
                     .border(
                         0.5.dp,
@@ -656,7 +666,6 @@ private fun TabCard(
                 contentAlignment = Alignment.Center,
             ) {
                 if (isHomeTab) {
-                    // Home Page Preview State (Black in Dark Mode, White in Light Mode)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -682,7 +691,7 @@ private fun TabCard(
                             color      = if (tab.isPrivate) Color(0xFFC084FC).copy(alpha = 0.8f) else if (isDark) Color.White.copy(alpha = 0.9f) else g.tx2Color,
                         )
                     }
-                } else if (tab.thumbnail != null) {
+                } else if (!isActive && tab.thumbnail != null) {
                     Image(
                         bitmap             = tab.thumbnail.asImageBitmap(),
                         contentDescription = null,
@@ -690,7 +699,7 @@ private fun TabCard(
                         alignment          = Alignment.TopCenter,
                         modifier           = Modifier.fillMaxSize(),
                     )
-                } else {
+                } else if (!isActive) {
                     Box(
                         modifier         = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,

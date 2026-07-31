@@ -119,6 +119,13 @@ data class BrowserUiState(
     val showDefaultBrowserPrompt: Boolean = false,
 )
 
+data class CardSlotBounds(
+    val x: Float = 0f,
+    val y: Float = 0f,
+    val width: Float = 0f,
+    val height: Float = 0f
+)
+
 enum class BrowserScreen { Home, Browser, TabSwitcher, Bookmarks, History, Downloads, Settings, Passwords, NewsHub }
 
 @HiltViewModel
@@ -139,6 +146,13 @@ class BrowserViewModel @Inject constructor(
     private val weatherRepository: com.orbit.browser.data.weather.WeatherRepository,
     private val passwordVaultRepository: PasswordVaultRepository,
 ) : ViewModel() {
+
+    private val _activeTabCardBounds = MutableStateFlow<CardSlotBounds?>(null)
+    val activeTabCardBounds: StateFlow<CardSlotBounds?> = _activeTabCardBounds.asStateFlow()
+
+    fun updateActiveTabCardBounds(bounds: CardSlotBounds) {
+        _activeTabCardBounds.value = bounds
+    }
 
     val savedLogins: StateFlow<List<SavedLoginMeta>> = passwordVaultRepository.savedLogins
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
