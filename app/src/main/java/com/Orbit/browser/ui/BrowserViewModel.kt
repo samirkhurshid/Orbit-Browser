@@ -145,6 +145,7 @@ class BrowserViewModel @Inject constructor(
     private val newsPatternLearner: NewsPatternLearner,
     private val weatherRepository: com.orbit.browser.data.weather.WeatherRepository,
     private val passwordVaultRepository: PasswordVaultRepository,
+    val previewManager: com.orbit.browser.browser.preview.PreviewManager,
 ) : ViewModel() {
 
     private val _activeTabCardBounds = MutableStateFlow<CardSlotBounds?>(null)

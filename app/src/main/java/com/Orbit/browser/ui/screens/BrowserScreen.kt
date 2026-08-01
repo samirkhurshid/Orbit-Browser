@@ -431,9 +431,11 @@ fun PersistentWebViewStack(
                         factory = { context ->
                             OBWebView(context).also { wv ->
                                 wv.layoutParams   = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                                wv.tabId          = tab.id
-                                wv.tabManager     = viewModel.tabManager
-                                wv.adBlocker      = viewModel.adBlocker
+                                wv.tabId            = tab.id
+                                wv.tabManager       = viewModel.tabManager
+                                wv.previewManager   = viewModel.previewManager
+                                wv.previewScheduler = viewModel.previewManager.scheduler
+                                wv.adBlocker        = viewModel.adBlocker
                                 wv.onCreateNewTab = { url -> viewModel.newTab(url) }
                                 wv.onUrlChanged   = { newUrl ->
                                     if (tab.id == activeTabId && newUrl.isNotBlank()) {
