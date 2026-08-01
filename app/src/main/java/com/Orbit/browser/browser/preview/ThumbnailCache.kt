@@ -21,22 +21,7 @@ class ThumbnailCache @Inject constructor(
     private val maxMemoryKb = (Runtime.getRuntime().maxMemory() / 1024).toInt()
     private val cacheSizeKb = (maxMemoryKb / 8).coerceAtLeast(1024)
 
-    private val lruCache = object : LruCache<String, Preview>(cacheSizeKb) {
-        override fun sizeOf(key: String, value: Preview): Int {
-            return (value.memorySizeBytes / 1024).toInt()
-        }
-
-        override fun entryRemoved(evicted: Boolean, key: String, oldValue: Preview, newValue: Preview?) {
-            if (evicted && oldValue != newValue && !oldValue.bitmap.isRecycled) {
-                // Recycle bitmap if evicted from cache
-                try {
-                    oldValue.bitmap.recycle()
-                } catch (e: Exception) {
-                    // Ignore recycling exceptions
-                }
-            }
-        }
-    }
+    private val lruCache = LruCache<String, Preview>(cacheSizeKb)
 
     private val _previewStates = MutableStateFlow<Map<String, PreviewState>>(emptyMap())
     val previewStates: StateFlow<Map<String, PreviewState>> = _previewStates.asStateFlow()
@@ -74,10 +59,7 @@ class ThumbnailCache @Inject constructor(
     }
 
     fun evict(tabId: String) {
-        val removed = lruCache.remove(tabId)
-        if (removed != null && !removed.bitmap.isRecycled) {
-            try { removed.bitmap.recycle() } catch (e: Exception) {}
-        }
+        lruCache.remove(tabId)
         _previewStates.value = _previewStates.value - tabId
     }
 
