@@ -57,6 +57,8 @@ class OBWebView @JvmOverloads constructor(
         com.orbit.browser.browser.preview.WebViewPreviewProvider(this)
     }
 
+    var previewScheduler: com.orbit.browser.browser.preview.PreviewScheduler? = null
+
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     init {
@@ -226,12 +228,11 @@ class OBWebView @JvmOverloads constructor(
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
-        val now = System.currentTimeMillis()
-        if (now - lastScrollCaptureTime > 600) {
-            lastScrollCaptureTime = now
-            postDelayed({
-                captureCurrentStateThumbnail()
-            }, 300)
+        previewScheduler?.scheduleRequest(
+            tabId = tabId,
+            policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(400L)
+        ) {
+            previewProvider.capturePreview()
         }
     }
 
@@ -385,9 +386,12 @@ class OBWebView @JvmOverloads constructor(
                         displayUrl   = formatDisplayUrl(targetUrl, query),
                     )
                 }
-                postDelayed({
-                    captureCurrentStateThumbnail()
-                }, 500)
+                previewScheduler?.scheduleRequest(
+                    tabId = tabId,
+                    policy = com.orbit.browser.browser.preview.SchedulePolicy.Immediate
+                ) {
+                    previewProvider.capturePreview()
+                }
             }
 
             override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
