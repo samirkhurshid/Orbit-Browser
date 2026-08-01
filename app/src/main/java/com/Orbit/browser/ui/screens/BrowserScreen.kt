@@ -416,7 +416,7 @@ fun PersistentWebViewStack(
                         }
                         .run {
                             if (isCurrentTabActive && isTabSwitcherActive) {
-                                this.height(innerCardHeightDp / scaleRatio)
+                                this.height(260.dp / scaleRatio)
                             } else this
                         }
                         .clip(RoundedCornerShape(safeCornerRadiusDp))
