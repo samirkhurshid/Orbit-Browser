@@ -3,6 +3,7 @@ package com.orbit.browser.browser.preview
 import android.graphics.Bitmap
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
+import com.orbit.browser.browser.tabs.TabManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -10,6 +11,7 @@ import javax.inject.Singleton
 class PreviewManager @Inject constructor(
     val thumbnailCache: ThumbnailCache,
     val scheduler: PreviewScheduler,
+    val tabManager: TabManager,
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val activeCaptureLocks = ConcurrentHashMap<String, Job>()
@@ -62,6 +64,7 @@ class PreviewManager @Inject constructor(
 
                     withContext(Dispatchers.Main) {
                         thumbnailCache.put(tabId, preview)
+                        tabManager.updateTab(tabId) { it.copy(thumbnail = preview.bitmap) }
                     }
                 } else {
                     handleCaptureFailure(tabId)
@@ -98,6 +101,7 @@ class PreviewManager @Inject constructor(
         activeCaptureLocks.remove(tabId)?.cancel()
         versionTracker.remove(tabId)
         thumbnailCache.evict(tabId)
+        tabManager.updateTab(tabId) { it.copy(thumbnail = null) }
     }
 
     fun clearAll() {
