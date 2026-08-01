@@ -232,7 +232,7 @@ class OBWebView @JvmOverloads constructor(
         previewManager?.requestPreview(
             tabId = tabId,
             provider = previewProvider,
-            policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(400L)
+            policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.SCROLL_SETTLE_DELAY_MS)
         )
     }
 

@@ -95,7 +95,7 @@ fun HomeScreen(
             viewModel.previewManager.requestPreview(
                 tabId = activeTabId,
                 provider = provider,
-                policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(300L)
+                policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.COMPOSE_SETTLE_DELAY_MS)
             )
         }
     }
