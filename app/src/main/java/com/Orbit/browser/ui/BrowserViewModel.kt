@@ -148,6 +148,14 @@ class BrowserViewModel @Inject constructor(
     val previewManager: com.orbit.browser.browser.preview.PreviewManager,
 ) : ViewModel() {
 
+    init {
+        viewModelScope.launch {
+            tabManager.activeTabId.collect { id ->
+                previewManager.thumbnailCache.setActiveTabId(id)
+            }
+        }
+    }
+
     private val _activeTabCardBounds = MutableStateFlow<CardSlotBounds?>(null)
     val activeTabCardBounds: StateFlow<CardSlotBounds?> = _activeTabCardBounds.asStateFlow()
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.util.LruCache
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ThumbnailCache @Inject constructor(
-    context: Context
+    @ApplicationContext context: Context
 ) : ComponentCallbacks2 {
 
     // Cap cache to 1/8th of available JVM heap size (e.g. ~32MB - 48MB)

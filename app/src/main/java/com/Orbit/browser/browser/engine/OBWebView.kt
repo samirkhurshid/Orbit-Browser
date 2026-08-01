@@ -322,6 +322,9 @@ class OBWebView @JvmOverloads constructor(
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
+                if (tabId.isNotBlank()) {
+                    previewScheduler?.cancelScheduledRequest(tabId)
+                }
                 if (url == null) return
 
                 if (httpsOnlyEnabled && url.startsWith("http://") && !url.startsWith("http://localhost") && !url.startsWith("http://127.0.0.1")) {
@@ -620,7 +623,17 @@ class OBWebView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        if (tabId.isNotBlank()) {
+            previewManager?.cancelAndEvict(tabId)
+        }
         scope.cancel()
         super.onDetachedFromWindow()
+    }
+
+    override fun destroy() {
+        if (tabId.isNotBlank()) {
+            previewManager?.cancelAndEvict(tabId)
+        }
+        super.destroy()
     }
 }
