@@ -51,6 +51,20 @@ fun HistoryScreen(
     val a1           = theme.effectiveA1
     val dbHistory    by viewModel.recentHistory.collectAsState()
 
+    val localView = androidx.compose.ui.platform.LocalView.current
+    val activeTabId by viewModel.tabManager.activeTabId.collectAsState()
+
+    LaunchedEffect(activeTabId, dbHistory.size) {
+        if (activeTabId.isNotBlank() && localView.width > 0 && localView.height > 0) {
+            val provider = com.orbit.browser.browser.preview.ComposePreviewProvider(localView, "History")
+            viewModel.previewManager.requestPreview(
+                tabId = activeTabId,
+                provider = provider,
+                policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(300L)
+            )
+        }
+    }
+
 
 
     val historyGroups = remember(dbHistory) {
