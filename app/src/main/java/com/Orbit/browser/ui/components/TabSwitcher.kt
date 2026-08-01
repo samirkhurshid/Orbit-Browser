@@ -490,14 +490,21 @@ private fun TabCard(
         visible = true
     }
 
+    var isClosingByButton by remember { mutableStateOf(false) }
+
     val cardScale by animateFloatAsState(
-        targetValue   = if (visible) 1f else 0.88f,
-        animationSpec = spring(dampingRatio = 0.82f, stiffness = 320f),
+        targetValue   = if (isClosingByButton) 0.5f else (if (visible) 1f else 0.88f),
+        animationSpec = spring(dampingRatio = 0.82f, stiffness = 340f),
         label         = "tabcard_scale",
+        finishedListener = {
+            if (isClosingByButton) {
+                onClose()
+            }
+        }
     )
     val cardEntryAlpha by animateFloatAsState(
-        targetValue   = if (visible) 1f else 0f,
-        animationSpec = tween(220, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
+        targetValue   = if (isClosingByButton) 0f else (if (visible) 1f else 0f),
+        animationSpec = tween(180, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
         label         = "tabcard_alpha",
     )
 
@@ -640,7 +647,7 @@ private fun TabCard(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = null,
-                            onClick           = onClose,
+                            onClick           = { isClosingByButton = true },
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
