@@ -323,17 +323,17 @@ private fun TabSwitcherContent(
                 Spacer(Modifier.height(6.dp))
             }
 
-            // Grid sliding transition
-            val tabGridEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
+            // Grid spring sliding transition (Phase 5 Dual Space)
+            val dualSpaceSpring = spring<androidx.compose.ui.unit.IntOffset>(dampingRatio = 0.82f, stiffness = 320f)
             AnimatedContent(
                 targetState = tabMode,
                 transitionSpec = {
                     if (targetState == TabMode.Private) {
-                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeIn(tween(200))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeOut(tween(200)))
+                        (slideInHorizontally(initialOffsetX = { it }, animationSpec = dualSpaceSpring) + fadeIn(tween(220))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { -it }, animationSpec = dualSpaceSpring) + fadeOut(tween(200)))
                     } else {
-                        (slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeIn(tween(200))) togetherWith
-                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(280, easing = tabGridEasing)) + fadeOut(tween(200)))
+                        (slideInHorizontally(initialOffsetX = { -it }, animationSpec = dualSpaceSpring) + fadeIn(tween(220))) togetherWith
+                        (slideOutHorizontally(targetOffsetX = { it }, animationSpec = dualSpaceSpring) + fadeOut(tween(200)))
                     }
                 },
                 modifier = Modifier.weight(1f).fillMaxWidth(),

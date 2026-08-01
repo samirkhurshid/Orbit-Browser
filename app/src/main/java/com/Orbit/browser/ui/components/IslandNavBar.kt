@@ -165,7 +165,7 @@ fun OBIslandNavBar(
                             // Sliding indicator pill
                             val indicatorOffset by animateDpAsState(
                                 targetValue   = if (tabMode == TabMode.Private) (animWidth / 2 - 8.dp) else 0.dp,
-                                animationSpec = tween(280, easing = com.orbit.browser.ui.animations.OBEasing.IosCurve),
+                                animationSpec = spring(dampingRatio = 0.78f, stiffness = 350f),
                                 label         = "tab_indicator",
                             )
                             Box(
