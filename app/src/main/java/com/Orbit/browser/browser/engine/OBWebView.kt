@@ -53,6 +53,10 @@ class OBWebView @JvmOverloads constructor(
             }
         }
 
+    val previewProvider: com.orbit.browser.browser.preview.PreviewProvider by lazy {
+        com.orbit.browser.browser.preview.WebViewPreviewProvider(this)
+    }
+
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     init {
