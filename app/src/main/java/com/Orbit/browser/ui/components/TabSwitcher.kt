@@ -688,7 +688,7 @@ private fun TabCard(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                if (!isActive && tab.thumbnail != null) {
+                if (tab.thumbnail != null && !tab.thumbnail.isRecycled) {
                     Image(
                         bitmap             = tab.thumbnail.asImageBitmap(),
                         contentDescription = null,
@@ -696,7 +696,6 @@ private fun TabCard(
                         alignment          = Alignment.TopCenter,
                         modifier           = Modifier.fillMaxSize(),
                     )
-                } else if (!isActive && isHomeTab) {
                 } else if (!isActive) {
                     Box(
                         modifier         = Modifier.fillMaxSize(),
