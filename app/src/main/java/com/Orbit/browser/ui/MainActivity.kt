@@ -183,23 +183,23 @@ fun OrbitBrowserApp(viewModel: BrowserViewModel) {
     CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(modifier = Modifier.fillMaxSize().background(theme.glass.phoneBg)) {
 
-        // Everything in this inner Box is the "backdrop" that frostedGlass
-        // surfaces (menus, sheets, nav bar, search overlay, tab switcher cards,
-        // etc.) will show blurred behind them via Haze.
-        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-            if (ui.screen != BrowserScreen.TabSwitcher) {
-                MeshBackground()
+            // Backdrop layer provided to Haze for blur sampling
+            Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
+                if (ui.screen != BrowserScreen.TabSwitcher) {
+                    MeshBackground()
 
-                // Weather overlay: tint + fog + particles + frost
-                // Dynamic theme only — static themes show clean backgrounds
-                if (ui.theme == OBThemePreset.Dynamic) {
-                    WeatherOverlayLayer()
+                    // Weather overlay: tint + fog + particles + frost
+                    // Dynamic theme only — static themes show clean backgrounds
+                    if (ui.theme == OBThemePreset.Dynamic) {
+                        WeatherOverlayLayer()
+                    }
                 }
-            }
 
-            // Persistent WebView stack (ALWAYS mounted so YouTube & tab states are NEVER lost)
-            PersistentWebViewStack(viewModel = viewModel)
+                // Persistent WebView stack (ALWAYS mounted so YouTube & tab states are NEVER lost)
+                PersistentWebViewStack(viewModel = viewModel)
+            }
 
             AnimatedContent(
                 targetState   = ui.screen,
