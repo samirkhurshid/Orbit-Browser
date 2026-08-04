@@ -50,13 +50,17 @@ fun IncognitoHomeScreen(
     val activeTabId by viewModel.tabManager.activeTabId.collectAsState()
 
     LaunchedEffect(activeTabId, ui.theme) {
-        if (activeTabId.isNotBlank() && localView.width > 0 && localView.height > 0) {
-            val provider = com.orbit.browser.browser.preview.ComposePreviewProvider(localView, "IncognitoHome")
-            viewModel.previewManager.requestPreview(
-                tabId = activeTabId,
-                provider = provider,
-                policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.COMPOSE_SETTLE_DELAY_MS)
-            )
+        if (activeTabId.isNotBlank()) {
+            localView.post {
+                if (localView.width > 0 && localView.height > 0) {
+                    val provider = com.orbit.browser.browser.preview.ComposePreviewProvider(localView, "IncognitoHome")
+                    viewModel.previewManager.requestPreview(
+                        tabId = activeTabId,
+                        provider = provider,
+                        policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.COMPOSE_SETTLE_DELAY_MS)
+                    )
+                }
+            }
         }
     }
     val entranceAlpha by animateFloatAsState(

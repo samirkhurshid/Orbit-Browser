@@ -90,13 +90,17 @@ fun HomeScreen(
     val activeTabId by viewModel.tabManager.activeTabId.collectAsState()
 
     LaunchedEffect(activeTabId, ui.theme, ui.weatherState, ui.manualWeather, quickAccess) {
-        if (activeTabId.isNotBlank() && localView.width > 0 && localView.height > 0) {
-            val provider = com.orbit.browser.browser.preview.ComposePreviewProvider(localView, "HomeScreen")
-            viewModel.previewManager.requestPreview(
-                tabId = activeTabId,
-                provider = provider,
-                policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.COMPOSE_SETTLE_DELAY_MS)
-            )
+        if (activeTabId.isNotBlank()) {
+            localView.post {
+                if (localView.width > 0 && localView.height > 0) {
+                    val provider = com.orbit.browser.browser.preview.ComposePreviewProvider(localView, "HomeScreen")
+                    viewModel.previewManager.requestPreview(
+                        tabId = activeTabId,
+                        provider = provider,
+                        policy = com.orbit.browser.browser.preview.SchedulePolicy.Debounced(com.orbit.browser.browser.preview.PreviewTimingDefaults.COMPOSE_SETTLE_DELAY_MS)
+                    )
+                }
+            }
         }
     }
 
