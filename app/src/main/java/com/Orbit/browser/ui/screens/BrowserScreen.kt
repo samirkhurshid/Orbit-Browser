@@ -398,6 +398,8 @@ fun PersistentWebViewStack(
                 )
                 val safeTopPaddingDp = topPaddingDp.coerceAtLeast(0.dp)
                 val safeCornerRadiusDp = tabCornerRadius.coerceAtLeast(0.dp)
+                val isSettledInTabSwitcher = isTabSwitcherActive && isCurrentTabActive && kotlin.math.abs(tabScale - scaleRatio) < 0.01f
+                val activeLiveAlpha = if (isSettledInTabSwitcher) 0f else tabAlpha
 
                 Box(
                     modifier = Modifier
@@ -411,7 +413,7 @@ fun PersistentWebViewStack(
                             translationY    = tabOffsetY
                             scaleX          = tabScale
                             scaleY          = tabScale
-                            alpha           = tabAlpha
+                            alpha           = activeLiveAlpha
                             shadowElevation = if (isTabSwitcherActive) 16f else 0f
                         }
                         .run {
