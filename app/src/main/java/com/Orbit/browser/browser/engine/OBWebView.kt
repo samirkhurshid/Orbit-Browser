@@ -241,12 +241,20 @@ class OBWebView @JvmOverloads constructor(
             val width = this@OBWebView.width
             val height = this@OBWebView.height
             if (width > 0 && height > 0) {
-                val scale = (600f / width).coerceAtMost(1.0f)
-                val thumbW = (width * scale).toInt().coerceAtLeast(1)
-                val thumbH = (height * scale).toInt().coerceAtLeast(1)
+                val location = IntArray(2)
+                getLocationInWindow(location)
+                val topInset = location[1].coerceAtLeast(0)
+
+                val cardAspectRatio = 1.40f
+                val thumbW = 600
+                val thumbH = (thumbW * cardAspectRatio).toInt().coerceAtLeast(1)
+
                 val bitmap = Bitmap.createBitmap(thumbW, thumbH, Bitmap.Config.ARGB_8888)
                 val canvas = android.graphics.Canvas(bitmap)
+                val scale = thumbW.toFloat() / width.toFloat()
+
                 canvas.scale(scale, scale)
+                canvas.translate(0f, -topInset.toFloat())
                 this@OBWebView.draw(canvas)
                 tabManager?.updateTab(tabId) { it.copy(thumbnail = bitmap) }
             }
